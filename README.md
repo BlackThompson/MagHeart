@@ -52,3 +52,43 @@
 
 > [!CAUTION]
 > Example
+
+---
+
+### Software Quickstart (Backend + Frontend)
+
+- Backend (FastAPI) in `Software/backend/` with SSE and CSV persistence.
+- Frontend is a React app in `Software/frontend` (Vite + react-jss).
+
+Run backend:
+
+```
+pip install -r Software/backend/requirements.txt
+uvicorn Software.backend.app:app --reload
+```
+
+Open SSE stream in browser:
+- `http://127.0.0.1:8000/events?userId=demo`
+
+Send a test heart rate:
+
+```
+curl -X POST http://127.0.0.1:8000/api/heart_rate \
+  -H 'Content-Type: application/json' \
+  -H 'X-User-Id: demo' \
+  -d '{"bpm":85, "ts": 1730704523123, "source":"watch_live"}'
+```
+
+CSV files are saved under `data/{userId}.csv`.
+
+See `Software/backend/README.md` for details.
+
+#### React (Vite) Frontend
+
+```
+cd Software/frontend
+npm install
+npm run dev
+```
+
+Dev server runs on `http://127.0.0.1:5173`. The Vite proxy (see `Software/frontend/vite.config.js`) forwards `/events` and `/api` to the FastAPI backend at `http://127.0.0.1:8000`.

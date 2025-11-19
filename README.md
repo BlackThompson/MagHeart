@@ -6,13 +6,13 @@
 
 #### Device @Black
 
-- [ ] Magnetic levitation
-- [ ] Device casing design
-- [ ] Simulated heartbeat Arduino code
+- [x] Magnetic levitation
+- [x] Device casing design
+- [x] Simulated heartbeat Arduino code
 
 #### Software @Dylan
 
-- [ ] Read Apple Watch heart rate stream data (a simple demo to demonstrate)
+- [x] Read Apple Watch heart rate stream data (a simple demo to demonstrate)
 - [ ] Building Lego Figures App (A separate app / a plugin of Zoom?)
 
 #### Other @Kacy

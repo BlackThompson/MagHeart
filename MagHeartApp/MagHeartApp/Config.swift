@@ -2,7 +2,7 @@ import Foundation
 
 enum Config {
     // Update for your backend deployment
-    static let backendBaseURL = URL(string: "http://127.0.0.1:8000")!
+    static let backendBaseURL = URL(string: "https://6102b9e3aebd.ngrok-free.app")!
     static let userId = "demo"
 }
 

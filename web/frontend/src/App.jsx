@@ -1,46 +1,54 @@
-import React from 'react'
-import styled from 'styled-components'
-import { HeartRateProvider } from './pages/HeartRateProvider.jsx'
-import StatusLine from './components/StatusLine.jsx'
-import BpmCard from './components/BpmCard.jsx'
-import UserIdBar from './components/UserIdBar.jsx'
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { createGlobalStyle } from "styled-components";
+import CoCreation from "./pages/CoCreation.jsx";
+import IdentitySetup from "./components/IdentitySetup.jsx";
+import SharedContextSetupPage from "./pages/SharedContextSetup.jsx";
+import FinalShowcasePage from "./pages/FinalShowcase.jsx";
 
-export default function App() {
-  const [userId, setUserId] = React.useState(() => new URLSearchParams(location.search).get('userId') || 'demo')
-
-  const applyUserId = (id) => {
-    setUserId(id)
-    const url = new URL(location.href)
-    url.searchParams.set('userId', id)
-    history.replaceState({}, '', url.toString())
+const GlobalStyle = createGlobalStyle`
+  :root {
+    --primary-color: #6366f1;
+    --primary-hover: #4f46e5;
+    --secondary-color: #64748b;
+    --background-color: #f8fafc;
+    --surface-color: #ffffff;
+    --border-color: #e2e8f0;
+    --text-color: #0f172a;
+    --text-color-muted: #64748b;
+    --success-color: #10b981;
+    --error-color: #ef4444;
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
   }
 
+  body {
+    margin: 0;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    line-height: 1.5;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+`;
+
+export default function App() {
   return (
-    <AppWrap>
-      <Title>MagHeart Live</Title>
-      <UserIdBar userId={userId} onChange={applyUserId} />
-      <HeartRateProvider userId={userId}>
-        <Stack>
-          <StatusLine />
-          <BpmCard />
-        </Stack>
-      </HeartRateProvider>
-    </AppWrap>
-  )
+    <>
+      <GlobalStyle />
+      <Router>
+        <Routes>
+          <Route path="/" element={<IdentitySetup />} />
+          <Route path="/shared-context" element={<SharedContextSetupPage />} />
+          <Route path="/cocreation" element={<CoCreation />} />
+          <Route path="/showcase" element={<FinalShowcasePage />} />
+        </Routes>
+      </Router>
+    </>
+  );
 }
-
-// CSS below JS
-const AppWrap = styled.div`
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
-  margin: 24px;
-`
-
-const Title = styled.h1`
-  margin-bottom: 16px;
-`
-
-const Stack = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-`

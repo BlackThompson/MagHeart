@@ -11,7 +11,7 @@ import SwiftUI
 struct MagHeartAppApp: App {
     var body: some Scene {
         WindowGroup {
-            HRPhoneView()
+            ContentView()
         }
     }
 }

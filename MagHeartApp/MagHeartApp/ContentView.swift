@@ -9,7 +9,19 @@ import SwiftUI
 
 struct ContentView: View {
     var body: some View {
-        HRPhoneView()
+        TabView {
+            HRPhoneView()
+                .tabItem {
+                    Image(systemName: "heart.fill")
+                    Text("Home")
+                }
+            SettingsView()
+                .tabItem {
+                    Image(systemName: "gearshape.fill")
+                    Text("Settings")
+                }
+        }
+        .tint(.red)
     }
 }
 

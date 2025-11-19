@@ -64,7 +64,7 @@ Run backend:
 
 ```
 pip install -r Software/backend/requirements.txt
-uvicorn Software.backend.app:app --reload
+uvicorn web.backend.app:app --reload
 ```
 
 Open SSE stream in browser:

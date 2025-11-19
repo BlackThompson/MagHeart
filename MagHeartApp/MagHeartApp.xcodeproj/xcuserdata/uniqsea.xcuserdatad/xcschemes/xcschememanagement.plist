@@ -6,6 +6,8 @@
 	<dict>
 		<key>MagHeartApp Watch App.xcscheme_^#shared#^_</key>
 		<dict>
+			<key>isShown</key>
+			<true/>
 			<key>orderHint</key>
 			<integer>1</integer>
 		</dict>
@@ -13,6 +15,44 @@
 		<dict>
 			<key>orderHint</key>
 			<integer>0</integer>
+		</dict>
+		<key>MagHeartWatchApp Watch App.xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>2</integer>
+		</dict>
+	</dict>
+	<key>SuppressBuildableAutocreation</key>
+	<dict>
+		<key>B466E7F92EBB683800D34271</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>B466E8062EBB683900D34271</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>B466E8102EBB683900D34271</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>B466E81C2EBB683900D34271</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>B466E82B2EBB683A00D34271</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>B466E8352EBB683A00D34271</key>
+		<dict>
+			<key>primary</key>
+			<true/>
 		</dict>
 	</dict>
 </dict>

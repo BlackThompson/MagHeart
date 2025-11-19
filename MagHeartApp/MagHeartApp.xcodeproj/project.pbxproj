@@ -11,35 +11,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		B466E8082EBB683900D34271 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = B466E7F22EBB683800D34271 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = B466E7F92EBB683800D34271;
-			remoteInfo = MagHeartApp;
-		};
-		B466E8122EBB683900D34271 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = B466E7F22EBB683800D34271 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = B466E7F92EBB683800D34271;
-			remoteInfo = MagHeartApp;
-		};
 		B466E81F2EBB683900D34271 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = B466E7F22EBB683800D34271 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = B466E81C2EBB683900D34271;
-			remoteInfo = "MagHeartApp Watch App";
-		};
-		B466E82D2EBB683A00D34271 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = B466E7F22EBB683800D34271 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = B466E81C2EBB683900D34271;
-			remoteInfo = "MagHeartApp Watch App";
-		};
-		B466E8372EBB683A00D34271 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = B466E7F22EBB683800D34271 /* Project object */;
 			proxyType = 1;
@@ -64,11 +36,7 @@
 
 /* Begin PBXFileReference section */
 		B466E7FA2EBB683800D34271 /* MagHeartApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MagHeartApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		B466E8072EBB683900D34271 /* MagHeartAppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MagHeartAppTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		B466E8112EBB683900D34271 /* MagHeartAppUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MagHeartAppUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		B466E81D2EBB683900D34271 /* MagHeartApp Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "MagHeartApp Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		B466E82C2EBB683A00D34271 /* MagHeartApp Watch AppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "MagHeartApp Watch AppTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
-		B466E8362EBB683A00D34271 /* MagHeartApp Watch AppUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "MagHeartApp Watch AppUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -77,49 +45,15 @@
 			path = MagHeartApp;
 			sourceTree = "<group>";
 		};
-		B466E80A2EBB683900D34271 /* MagHeartAppTests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = MagHeartAppTests;
-			sourceTree = "<group>";
-		};
-		B466E8142EBB683900D34271 /* MagHeartAppUITests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = MagHeartAppUITests;
-			sourceTree = "<group>";
-		};
 		B466E8212EBB683900D34271 /* MagHeartApp Watch App */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = "MagHeartApp Watch App";
-			sourceTree = "<group>";
-		};
-		B466E82F2EBB683A00D34271 /* MagHeartApp Watch AppTests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "MagHeartApp Watch AppTests";
-			sourceTree = "<group>";
-		};
-		B466E8392EBB683A00D34271 /* MagHeartApp Watch AppUITests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "MagHeartApp Watch AppUITests";
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		B466E7F72EBB683800D34271 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		B466E8042EBB683900D34271 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		B466E80E2EBB683900D34271 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -133,20 +67,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		B466E8292EBB683A00D34271 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		B466E8332EBB683A00D34271 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -154,11 +74,7 @@
 			isa = PBXGroup;
 			children = (
 				B466E7FC2EBB683800D34271 /* MagHeartApp */,
-				B466E80A2EBB683900D34271 /* MagHeartAppTests */,
-				B466E8142EBB683900D34271 /* MagHeartAppUITests */,
 				B466E8212EBB683900D34271 /* MagHeartApp Watch App */,
-				B466E82F2EBB683A00D34271 /* MagHeartApp Watch AppTests */,
-				B466E8392EBB683A00D34271 /* MagHeartApp Watch AppUITests */,
 				B466E7FB2EBB683800D34271 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -167,11 +83,7 @@
 			isa = PBXGroup;
 			children = (
 				B466E7FA2EBB683800D34271 /* MagHeartApp.app */,
-				B466E8072EBB683900D34271 /* MagHeartAppTests.xctest */,
-				B466E8112EBB683900D34271 /* MagHeartAppUITests.xctest */,
 				B466E81D2EBB683900D34271 /* MagHeartApp Watch App.app */,
-				B466E82C2EBB683A00D34271 /* MagHeartApp Watch AppTests.xctest */,
-				B466E8362EBB683A00D34271 /* MagHeartApp Watch AppUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -203,52 +115,6 @@
 			productReference = B466E7FA2EBB683800D34271 /* MagHeartApp.app */;
 			productType = "com.apple.product-type.application";
 		};
-		B466E8062EBB683900D34271 /* MagHeartAppTests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = B466E8472EBB683A00D34271 /* Build configuration list for PBXNativeTarget "MagHeartAppTests" */;
-			buildPhases = (
-				B466E8032EBB683900D34271 /* Sources */,
-				B466E8042EBB683900D34271 /* Frameworks */,
-				B466E8052EBB683900D34271 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				B466E8092EBB683900D34271 /* PBXTargetDependency */,
-			);
-			fileSystemSynchronizedGroups = (
-				B466E80A2EBB683900D34271 /* MagHeartAppTests */,
-			);
-			name = MagHeartAppTests;
-			packageProductDependencies = (
-			);
-			productName = MagHeartAppTests;
-			productReference = B466E8072EBB683900D34271 /* MagHeartAppTests.xctest */;
-			productType = "com.apple.product-type.bundle.unit-test";
-		};
-		B466E8102EBB683900D34271 /* MagHeartAppUITests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = B466E84A2EBB683A00D34271 /* Build configuration list for PBXNativeTarget "MagHeartAppUITests" */;
-			buildPhases = (
-				B466E80D2EBB683900D34271 /* Sources */,
-				B466E80E2EBB683900D34271 /* Frameworks */,
-				B466E80F2EBB683900D34271 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				B466E8132EBB683900D34271 /* PBXTargetDependency */,
-			);
-			fileSystemSynchronizedGroups = (
-				B466E8142EBB683900D34271 /* MagHeartAppUITests */,
-			);
-			name = MagHeartAppUITests;
-			packageProductDependencies = (
-			);
-			productName = MagHeartAppUITests;
-			productReference = B466E8112EBB683900D34271 /* MagHeartAppUITests.xctest */;
-			productType = "com.apple.product-type.bundle.ui-testing";
-		};
 		B466E81C2EBB683900D34271 /* MagHeartApp Watch App */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = B466E8402EBB683A00D34271 /* Build configuration list for PBXNativeTarget "MagHeartApp Watch App" */;
@@ -271,52 +137,6 @@
 			productReference = B466E81D2EBB683900D34271 /* MagHeartApp Watch App.app */;
 			productType = "com.apple.product-type.application";
 		};
-		B466E82B2EBB683A00D34271 /* MagHeartApp Watch AppTests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = B466E84D2EBB683A00D34271 /* Build configuration list for PBXNativeTarget "MagHeartApp Watch AppTests" */;
-			buildPhases = (
-				B466E8282EBB683A00D34271 /* Sources */,
-				B466E8292EBB683A00D34271 /* Frameworks */,
-				B466E82A2EBB683A00D34271 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				B466E82E2EBB683A00D34271 /* PBXTargetDependency */,
-			);
-			fileSystemSynchronizedGroups = (
-				B466E82F2EBB683A00D34271 /* MagHeartApp Watch AppTests */,
-			);
-			name = "MagHeartApp Watch AppTests";
-			packageProductDependencies = (
-			);
-			productName = "MagHeartApp Watch AppTests";
-			productReference = B466E82C2EBB683A00D34271 /* MagHeartApp Watch AppTests.xctest */;
-			productType = "com.apple.product-type.bundle.unit-test";
-		};
-		B466E8352EBB683A00D34271 /* MagHeartApp Watch AppUITests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = B466E8502EBB683A00D34271 /* Build configuration list for PBXNativeTarget "MagHeartApp Watch AppUITests" */;
-			buildPhases = (
-				B466E8322EBB683A00D34271 /* Sources */,
-				B466E8332EBB683A00D34271 /* Frameworks */,
-				B466E8342EBB683A00D34271 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				B466E8382EBB683A00D34271 /* PBXTargetDependency */,
-			);
-			fileSystemSynchronizedGroups = (
-				B466E8392EBB683A00D34271 /* MagHeartApp Watch AppUITests */,
-			);
-			name = "MagHeartApp Watch AppUITests";
-			packageProductDependencies = (
-			);
-			productName = "MagHeartApp Watch AppUITests";
-			productReference = B466E8362EBB683A00D34271 /* MagHeartApp Watch AppUITests.xctest */;
-			productType = "com.apple.product-type.bundle.ui-testing";
-		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -330,24 +150,8 @@
 					B466E7F92EBB683800D34271 = {
 						CreatedOnToolsVersion = 26.1;
 					};
-					B466E8062EBB683900D34271 = {
-						CreatedOnToolsVersion = 26.1;
-						TestTargetID = B466E7F92EBB683800D34271;
-					};
-					B466E8102EBB683900D34271 = {
-						CreatedOnToolsVersion = 26.1;
-						TestTargetID = B466E7F92EBB683800D34271;
-					};
 					B466E81C2EBB683900D34271 = {
 						CreatedOnToolsVersion = 26.1;
-					};
-					B466E82B2EBB683A00D34271 = {
-						CreatedOnToolsVersion = 26.1;
-						TestTargetID = B466E81C2EBB683900D34271;
-					};
-					B466E8352EBB683A00D34271 = {
-						CreatedOnToolsVersion = 26.1;
-						TestTargetID = B466E81C2EBB683900D34271;
 					};
 				};
 			};
@@ -366,11 +170,7 @@
 			projectRoot = "";
 			targets = (
 				B466E7F92EBB683800D34271 /* MagHeartApp */,
-				B466E8062EBB683900D34271 /* MagHeartAppTests */,
-				B466E8102EBB683900D34271 /* MagHeartAppUITests */,
 				B466E81C2EBB683900D34271 /* MagHeartApp Watch App */,
-				B466E82B2EBB683A00D34271 /* MagHeartApp Watch AppTests */,
-				B466E8352EBB683A00D34271 /* MagHeartApp Watch AppUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -383,35 +183,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		B466E8052EBB683900D34271 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		B466E80F2EBB683900D34271 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		B466E81B2EBB683900D34271 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		B466E82A2EBB683A00D34271 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		B466E8342EBB683A00D34271 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -428,35 +200,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		B466E8032EBB683900D34271 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		B466E80D2EBB683900D34271 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		B466E8192EBB683900D34271 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		B466E8282EBB683A00D34271 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		B466E8322EBB683A00D34271 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -466,30 +210,10 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		B466E8092EBB683900D34271 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = B466E7F92EBB683800D34271 /* MagHeartApp */;
-			targetProxy = B466E8082EBB683900D34271 /* PBXContainerItemProxy */;
-		};
-		B466E8132EBB683900D34271 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = B466E7F92EBB683800D34271 /* MagHeartApp */;
-			targetProxy = B466E8122EBB683900D34271 /* PBXContainerItemProxy */;
-		};
 		B466E8202EBB683900D34271 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = B466E81C2EBB683900D34271 /* MagHeartApp Watch App */;
 			targetProxy = B466E81F2EBB683900D34271 /* PBXContainerItemProxy */;
-		};
-		B466E82E2EBB683A00D34271 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = B466E81C2EBB683900D34271 /* MagHeartApp Watch App */;
-			targetProxy = B466E82D2EBB683A00D34271 /* PBXContainerItemProxy */;
-		};
-		B466E8382EBB683A00D34271 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = B466E81C2EBB683900D34271 /* MagHeartApp Watch App */;
-			targetProxy = B466E8372EBB683A00D34271 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -615,21 +339,29 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
+				CODE_SIGN_ENTITLEMENTS = "MagHeartApp Watch App/MagHeartApp Watch App.entitlements";
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 8A729X3YLH;
+				DEVELOPMENT_TEAM = HR9VCFHZ2D;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = MagHeartApp;
+				INFOPLIST_FILE = "MagHeartApp-Watch-App-Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = MagHeartWatch;
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "For recoding, uploading and dispalying heart rate in real time ";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "For recoding, uploading heart rate data";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
-				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.uniqsea.MagHeartApp;
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.dylanx.MagHeartApp;
+				INFOPLIST_KEY_WKRunsIndependentlyOfCompanionApp = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.uniqsea.MagHeartApp.watchkitapp;
+				PRODUCT_BUNDLE_IDENTIFIER = com.dylanx.MagHeartApp.watchkitapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = watchos;
 				SKIP_INSTALL = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -639,7 +371,7 @@
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 4;
-				WATCHOS_DEPLOYMENT_TARGET = 26.1;
+				WATCHOS_DEPLOYMENT_TARGET = 11.0;
 			};
 			name = Debug;
 		};
@@ -648,21 +380,29 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
+				CODE_SIGN_ENTITLEMENTS = "MagHeartApp Watch App/MagHeartApp Watch App.entitlements";
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 8A729X3YLH;
+				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = MagHeartApp;
+				INFOPLIST_FILE = "MagHeartApp-Watch-App-Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = MagHeartWatch;
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "For recoding, uploading and dispalying heart rate in real time ";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "For recoding, uploading heart rate data";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
-				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.uniqsea.MagHeartApp;
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.dylanx.MagHeartApp;
+				INFOPLIST_KEY_WKRunsIndependentlyOfCompanionApp = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.uniqsea.MagHeartApp.watchkitapp;
+				PRODUCT_BUNDLE_IDENTIFIER = com.dylanx.MagHeartApp.watchkitapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = watchos;
 				SKIP_INSTALL = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -673,7 +413,7 @@
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 4;
 				VALIDATE_PRODUCT = YES;
-				WATCHOS_DEPLOYMENT_TARGET = 26.1;
+				WATCHOS_DEPLOYMENT_TARGET = 11.0;
 			};
 			name = Release;
 		};
@@ -682,24 +422,27 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
+				CODE_SIGN_ENTITLEMENTS = MagHeartApp/MagHeartApp.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 8A729X3YLH;
+				DEVELOPMENT_TEAM = HR9VCFHZ2D;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = MagHeartApp;
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "MagHeartApp needs access to your heart rate data to display and monitor your heart rate.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.uniqsea.MagHeartApp;
+				PRODUCT_BUNDLE_IDENTIFIER = com.dylanx.MagHeartApp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -717,24 +460,27 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
+				CODE_SIGN_ENTITLEMENTS = MagHeartApp/MagHeartApp.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 8A729X3YLH;
+				DEVELOPMENT_TEAM = HR9VCFHZ2D;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = MagHeartApp;
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "MagHeartApp needs access to your heart rate data to display and monitor your heart rate.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.uniqsea.MagHeartApp;
+				PRODUCT_BUNDLE_IDENTIFIER = com.dylanx.MagHeartApp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -745,190 +491,6 @@
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALIDATE_PRODUCT = YES;
-			};
-			name = Release;
-		};
-		B466E8482EBB683A00D34271 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 8A729X3YLH;
-				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.uniqsea.MagHeartAppTests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = iphoneos;
-				STRING_CATALOG_GENERATE_SYMBOLS = NO;
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/MagHeartApp.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/MagHeartApp";
-			};
-			name = Debug;
-		};
-		B466E8492EBB683A00D34271 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 8A729X3YLH;
-				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.uniqsea.MagHeartAppTests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = iphoneos;
-				STRING_CATALOG_GENERATE_SYMBOLS = NO;
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/MagHeartApp.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/MagHeartApp";
-				VALIDATE_PRODUCT = YES;
-			};
-			name = Release;
-		};
-		B466E84B2EBB683A00D34271 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 8A729X3YLH;
-				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.uniqsea.MagHeartAppUITests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = iphoneos;
-				STRING_CATALOG_GENERATE_SYMBOLS = NO;
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = MagHeartApp;
-			};
-			name = Debug;
-		};
-		B466E84C2EBB683A00D34271 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 8A729X3YLH;
-				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.uniqsea.MagHeartAppUITests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = iphoneos;
-				STRING_CATALOG_GENERATE_SYMBOLS = NO;
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = MagHeartApp;
-				VALIDATE_PRODUCT = YES;
-			};
-			name = Release;
-		};
-		B466E84E2EBB683A00D34271 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 8A729X3YLH;
-				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.uniqsea.MagHeartApp-Watch-AppTests";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = watchos;
-				STRING_CATALOG_GENERATE_SYMBOLS = NO;
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 4;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/MagHeartApp Watch App.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/MagHeartApp Watch App";
-				WATCHOS_DEPLOYMENT_TARGET = 26.1;
-			};
-			name = Debug;
-		};
-		B466E84F2EBB683A00D34271 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 8A729X3YLH;
-				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.uniqsea.MagHeartApp-Watch-AppTests";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = watchos;
-				STRING_CATALOG_GENERATE_SYMBOLS = NO;
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 4;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/MagHeartApp Watch App.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/MagHeartApp Watch App";
-				VALIDATE_PRODUCT = YES;
-				WATCHOS_DEPLOYMENT_TARGET = 26.1;
-			};
-			name = Release;
-		};
-		B466E8512EBB683A00D34271 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 8A729X3YLH;
-				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.uniqsea.MagHeartApp-Watch-AppUITests";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = watchos;
-				STRING_CATALOG_GENERATE_SYMBOLS = NO;
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 4;
-				TEST_TARGET_NAME = "MagHeartApp Watch App";
-				WATCHOS_DEPLOYMENT_TARGET = 26.1;
-			};
-			name = Debug;
-		};
-		B466E8522EBB683A00D34271 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 8A729X3YLH;
-				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.uniqsea.MagHeartApp-Watch-AppUITests";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = watchos;
-				STRING_CATALOG_GENERATE_SYMBOLS = NO;
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 4;
-				TEST_TARGET_NAME = "MagHeartApp Watch App";
-				VALIDATE_PRODUCT = YES;
-				WATCHOS_DEPLOYMENT_TARGET = 26.1;
 			};
 			name = Release;
 		};
@@ -958,42 +520,6 @@
 			buildConfigurations = (
 				B466E8452EBB683A00D34271 /* Debug */,
 				B466E8462EBB683A00D34271 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		B466E8472EBB683A00D34271 /* Build configuration list for PBXNativeTarget "MagHeartAppTests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				B466E8482EBB683A00D34271 /* Debug */,
-				B466E8492EBB683A00D34271 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		B466E84A2EBB683A00D34271 /* Build configuration list for PBXNativeTarget "MagHeartAppUITests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				B466E84B2EBB683A00D34271 /* Debug */,
-				B466E84C2EBB683A00D34271 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		B466E84D2EBB683A00D34271 /* Build configuration list for PBXNativeTarget "MagHeartApp Watch AppTests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				B466E84E2EBB683A00D34271 /* Debug */,
-				B466E84F2EBB683A00D34271 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		B466E8502EBB683A00D34271 /* Build configuration list for PBXNativeTarget "MagHeartApp Watch AppUITests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				B466E8512EBB683A00D34271 /* Debug */,
-				B466E8522EBB683A00D34271 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

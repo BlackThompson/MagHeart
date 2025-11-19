@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .config import CORS_ALLOW_ORIGINS
-from .routers import signals
+from .routers import signals, cocreation
 
 
 app = FastAPI(title="MagHeart Backend", version="0.1.0")
@@ -17,6 +17,7 @@ app.add_middleware(
 
 
 app.include_router(signals.router, tags=["signals"])
+app.include_router(cocreation.router, prefix="/cocreation", tags=["cocreation"])
 
 
 @app.get("/")

@@ -1,6 +1,6 @@
 # MagHeart
 
-## TODO List (Nov 3 - Nov 29, 2025)
+## TODO List
 
 ### Week 1: Nov 3 - Nov 9
 
@@ -23,7 +23,7 @@
 #### Device @Black @ Dylan
 
 - [ ] Add LED Strip
-- [ ] Connect the device and the software.
+- [ ] Connect the device and the software
 
 ### Week 3: Nov 17 - Nov 23
 - [ ] User Study
@@ -37,6 +37,8 @@
 - Update this list daily with progress
 - Check off completed items using `[x]`
 - Add specific tasks as needed under each day
+
+
 
 > [!WARNING]
 > Example

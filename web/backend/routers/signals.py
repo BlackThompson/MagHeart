@@ -4,16 +4,22 @@ from typing import Optional
 from datetime import datetime, timezone
 import asyncio
 import json
+import logging
 
 from ..models.signal import HeartRateIn
 from ..storage.database import append_heart_rate, read_latest
 from ..services import signal_service as svc
+from ..services.arduino_service import send_heart_rate_to_arduino
+
+logger = logging.getLogger(__name__)
 
 
 router = APIRouter()
 
 
-async def get_user_id(x_user_id: Optional[str] = Header(None), userId: Optional[str] = None):
+async def get_user_id(
+    x_user_id: Optional[str] = Header(None), userId: Optional[str] = None
+):
     return x_user_id or userId or "demo"
 
 
@@ -24,7 +30,23 @@ async def post_heart_rate(payload: HeartRateIn, user_id: str = Depends(get_user_
     event = {"id": payload.ts, "type": "hr", "data": data}
     await svc.set_latest(user_id, data)
     await svc.publish(user_id, event)
-    return {"ok": True, "userId": user_id, "received_at": int(datetime.now(timezone.utc).timestamp() * 1000)}
+
+    # Send heart rate to Arduino device
+    try:
+        arduino_success = await send_heart_rate_to_arduino(payload.bpm)
+        if arduino_success:
+            logger.info(
+                f"💓 Heart rate {payload.bpm} BPM sent to Arduino for user {user_id}"
+            )
+    except Exception as e:
+        # Don't fail the request if Arduino communication fails
+        logger.warning(f"Failed to send heart rate to Arduino: {e}")
+
+    return {
+        "ok": True,
+        "userId": user_id,
+        "received_at": int(datetime.now(timezone.utc).timestamp() * 1000),
+    }
 
 
 @router.get("/events")
@@ -71,6 +93,9 @@ async def sse(request: Request, userId: str):
         finally:
             pass
 
-    headers = {"Cache-Control": "no-cache, no-transform", "Content-Type": "text/event-stream", "Connection": "keep-alive"}
+    headers = {
+        "Cache-Control": "no-cache, no-transform",
+        "Content-Type": "text/event-stream",
+        "Connection": "keep-alive",
+    }
     return StreamingResponse(event_gen(), headers=headers)
-

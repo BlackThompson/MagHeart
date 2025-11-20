@@ -23,7 +23,7 @@
 #### Device @Black @ Dylan
 
 - [ ] Add LED Strip
-- [ ] Connect the device and the software
+- [x] Connect the device and the software
 
 ### Week 3: Nov 17 - Nov 23
 - [ ] User Study
@@ -54,6 +54,23 @@
 
 > [!CAUTION]
 > Example
+
+---
+
+## 🔌 Arduino Device Integration
+
+**Connect heart rate data to physical device!**
+
+The backend can send heart rate data directly to your ESP32/Arduino device via serial port, controlling a magnetic levitation system to visualize heartbeats in real-time.
+
+### Quick Setup
+
+1. **Upload Arduino code**: `Device/Arduino/magheart.ino`
+2. **Configure backend**: Set `ARDUINO_ENABLED=true` and `ARDUINO_PORT` in `.env`
+3. **Test connection**: `python web/backend/test_arduino.py`
+4. **Start backend**: Heart rates will automatically control the device!
+
+📖 **Full guide**: [QUICKSTART_ARDUINO.md](QUICKSTART_ARDUINO.md)
 
 ---
 

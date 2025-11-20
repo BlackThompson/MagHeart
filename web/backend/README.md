@@ -16,11 +16,21 @@ FastAPI backend providing heart-rate upload and real-time Server-Sent Events (SS
 pip install -r Software/backend/requirements.txt
 ```
 
-3. Environment variables (optional):
+3. Environment variables:
 
-- `REDIS_URL` (default `redis://localhost:6379/0`)
+**Required:**
+- `REDIS_URL` (e.g., `redis://localhost:6379/0`)
+
+**Optional:**
 - `MAGHEART_DATA_DIR` (default `data`)
-- `CORS_ALLOW_ORIGINS` (default `http://localhost:3000,http://127.0.0.1:3000`)
+- `CORS_ALLOW_ORIGINS` (default `*`)
+
+**Arduino Integration (Optional):**
+- `ARDUINO_ENABLED` (default `false`, set to `true` to enable)
+- `ARDUINO_PORT` (e.g., `COM3` on Windows, `/dev/ttyUSB0` on Linux)
+- `ARDUINO_BAUDRATE` (default `115200`)
+
+See [ARDUINO_SETUP.md](./ARDUINO_SETUP.md) for detailed Arduino integration guide.
 
 ## Run
 
@@ -45,7 +55,23 @@ curl -X POST http://127.0.0.1:8000/api/heart_rate \
 CSV files will be stored under `data/`, for example `data/demo.csv` with columns:
 `ts,bpm,source,confidence,device`.
 
+## Arduino Integration
+
+To enable real-time heart rate visualization on physical device:
+
+1. Set `ARDUINO_ENABLED=true` in `.env`
+2. Configure `ARDUINO_PORT` (e.g., `COM3`)
+3. Upload `Device/Arduino/magheart.ino` to ESP32
+4. Restart backend
+
+Heart rates posted to `/api/heart_rate` will automatically control the Arduino device.
+
+Check connection status: `GET /api/arduino/status`
+
+See [ARDUINO_SETUP.md](./ARDUINO_SETUP.md) for complete setup guide.
+
 ## Notes
 - SSE requires reverse proxy buffering disabled if behind Nginx: `proxy_buffering off;`
 - Redis is used for real-time fanout and latest value; CSV holds history for now.
 - Auth is simplified: use `X-User-Id` header for user scoping during development.
+- Arduino communication is optional and won't affect API functionality if disabled.

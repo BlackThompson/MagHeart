@@ -29,3 +29,8 @@ if _cors.strip() == "*":
     CORS_ALLOW_ORIGINS = ["*"]
 else:
     CORS_ALLOW_ORIGINS = [o.strip() for o in _cors.split(",") if o.strip()]
+
+# Arduino Serial Port Configuration
+ARDUINO_PORT = os.getenv("ARDUINO_PORT", "")  # e.g., COM3 or /dev/ttyUSB0
+ARDUINO_BAUDRATE = int(os.getenv("ARDUINO_BAUDRATE", "115200"))
+ARDUINO_ENABLED = os.getenv("ARDUINO_ENABLED", "false").lower() in ("true", "1", "yes")

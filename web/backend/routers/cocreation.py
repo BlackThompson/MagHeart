@@ -25,28 +25,27 @@ class ConnectionManager:
                 "userId": user_id,
                 "joinedAt": now_str,
                 "lastSeen": now_str,
-                "status": "online"
+                "status": "online",
             }
         else:
             self.session_state[session_id][user_id]["status"] = "online"
             self.session_state[session_id][user_id]["lastSeen"] = now_str
 
     def disconnect(self, websocket: WebSocket, session_id: str, user_id: str):
+        # Remove this websocket from the active connection list
         if session_id in self.active_connections:
             if websocket in self.active_connections[session_id]:
                 self.active_connections[session_id].remove(websocket)
-            
-            # Instead of deleting, mark as offline first
-            if session_id in self.session_state and user_id in self.session_state[session_id]:
-                self.session_state[session_id][user_id]["status"] = "offline"
-                self.session_state[session_id][user_id]["lastSeen"] = datetime.now().isoformat()
-            
-            # Only cleanup empty sessions
+            # Drop empty connection lists to avoid leaking empty sessions
             if not self.active_connections[session_id]:
-                # Optional: Keep session state for a bit or clear it
-                # For now, clear connection list but keep state in memory until server restart 
-                # or explicit cleanup logic (not implemented here for simplicity)
-                pass
+                del self.active_connections[session_id]
+
+        # Mentimeter-style presence: user disappears when they leave
+        if session_id in self.session_state and user_id in self.session_state[session_id]:
+            del self.session_state[session_id][user_id]
+            # Clean up empty session state
+            if not self.session_state[session_id]:
+                del self.session_state[session_id]
 
     async def cleanup_user(self, session_id: str, user_id: str):
         """Explicitly remove a user from state if needed"""
@@ -117,10 +116,10 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str, user_id: str
                 
     except WebSocketDisconnect:
         manager.disconnect(websocket, session_id, user_id)
-        await manager.broadcast_state(session_id) # Broadcast new state (offline status)
+        await manager.broadcast_state(session_id)  # Broadcast updated participant list
         leave_message = {"type": "status", "payload": {"message": f"User {user_id} disconnected."}}
         await manager.broadcast(json.dumps(leave_message), session_id)
         
         # Optional: Schedule cleanup if user doesn't reconnect in X seconds
         # This requires background tasks which are tricky in simple websocket handlers
-        # For now, we rely on "offline" status to let frontend show grayed out users
+        # For now, we simply remove users when they disconnect (Mentimeter-style presence)

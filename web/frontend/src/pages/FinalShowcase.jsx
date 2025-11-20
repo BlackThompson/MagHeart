@@ -9,7 +9,7 @@ import { Wifi, WifiOff, ChevronLeft } from 'lucide-react';
 export default function FinalShowcasePage() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { name, role } = location.state || {};
+  const { name, role, meetingId: stateMeetingId } = location.state || {};
 
   useEffect(() => {
     if (!name || !role) {
@@ -17,7 +17,8 @@ export default function FinalShowcasePage() {
     }
   }, [name, role, navigate]);
 
-  const sessionId = new URLSearchParams(location.search).get('sessionId') || 'default-session';
+  const querySessionId = new URLSearchParams(location.search).get('sessionId');
+  const sessionId = stateMeetingId || querySessionId || 'default-session';
   const { messages, isConnected } = useCoCreationSocket(sessionId, name);
 
   if (!name || !role) {

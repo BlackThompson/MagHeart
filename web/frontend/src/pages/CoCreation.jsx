@@ -19,7 +19,7 @@ import {
 export default function CoCreationPage() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { name, role, sharedContext } = location.state || {};
+  const { name, role, sharedContext, meetingId: stateMeetingId } = location.state || {};
 
   useEffect(() => {
     if (!name || !role) {
@@ -27,7 +27,8 @@ export default function CoCreationPage() {
     }
   }, [name, role, navigate]);
 
-  const sessionId = new URLSearchParams(location.search).get('sessionId') || 'default-session';
+  const querySessionId = new URLSearchParams(location.search).get('sessionId');
+  const sessionId = stateMeetingId || querySessionId || 'default-session';
   const { messages, sendMessage, isConnected } = useCoCreationSocket(sessionId, name);
 
   if (!name || !role) {
@@ -134,8 +135,8 @@ export default function CoCreationPage() {
           <ProgressInfo>Step 2 / 3</ProgressInfo>
           <PrimaryButton
             onClick={() =>
-              navigate('/showcase', {
-                state: { name, role, sharedContext },
+              navigate(`/showcase?sessionId=${encodeURIComponent(sessionId)}`, {
+                state: { name, role, sharedContext, meetingId: sessionId },
               })
             }
           >

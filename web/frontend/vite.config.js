@@ -5,9 +5,13 @@ export default defineConfig({
   plugins: [react()],
   server: {
     proxy: {
-      '/events': { target: 'http://127.0.0.1:8000', changeOrigin: true },
-      '/api': { target: 'http://127.0.0.1:8000', changeOrigin: true }
+      '/events': { target: 'http://127.0.0.1:8176', changeOrigin: true },
+      '/api': { target: 'http://127.0.0.1:8176', changeOrigin: true },
+      '/cocreation': {
+        target: 'http://127.0.0.1:8176',
+        changeOrigin: true,
+        ws: true,
+      },
     }
   }
 })
-

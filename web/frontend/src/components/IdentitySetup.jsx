@@ -1,16 +1,36 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
-import { User, Activity } from 'lucide-react';
+import { User, Activity, RefreshCw } from 'lucide-react';
 
 export default function IdentitySetup() {
   const [name, setName] = useState('');
   const [role, setRole] = useState(null); // 'local' or 'remote'
+  const [meetingId, setMeetingId] = useState('');
+  const [avatarSeed, setAvatarSeed] = useState('');
   const navigate = useNavigate();
 
+  useEffect(() => {
+    const saved = window.localStorage.getItem('magheart_avatar_seed');
+    if (saved) {
+      setAvatarSeed(saved);
+    } else {
+      setAvatarSeed(Math.random().toString(36).slice(2));
+    }
+  }, []);
+
+  const randomizeAvatar = () => {
+    setAvatarSeed(Math.random().toString(36).slice(2));
+  };
+
   const handleComplete = () => {
-    if (name && role) {
-      navigate('/shared-context', { state: { name, role } });
+    if (name && role && meetingId && avatarSeed) {
+      const sessionId = meetingId.trim();
+      const finalSeed = avatarSeed.trim() || Math.random().toString(36).slice(2);
+      window.localStorage.setItem('magheart_avatar_seed', finalSeed);
+      navigate(`/lobby?sessionId=${encodeURIComponent(sessionId)}`, {
+        state: { name, role, meetingId: sessionId, avatarSeed: finalSeed },
+      });
     }
   };
 
@@ -19,6 +39,23 @@ export default function IdentitySetup() {
       <Card>
         <Title>Identity Selection</Title>
         <Subtitle>Who are you in this session?</Subtitle>
+
+        <AvatarWrapper>
+          <AvatarPreview>
+            {avatarSeed && (
+              <AvatarImg
+                src={`https://api.dicebear.com/9.x/pixel-art/svg?seed=${encodeURIComponent(
+                  avatarSeed,
+                )}`}
+                alt="Avatar preview"
+              />
+            )}
+            <AvatarRefreshBtn onClick={randomizeAvatar} title="Change Avatar">
+              <RefreshCw size={16} />
+            </AvatarRefreshBtn>
+          </AvatarPreview>
+          <AvatarHintText>Your session avatar</AvatarHintText>
+        </AvatarWrapper>
         
         <Section>
           <Label htmlFor="name-input">Your Name</Label>
@@ -28,6 +65,17 @@ export default function IdentitySetup() {
             placeholder="Enter your name..." 
             value={name} 
             onChange={(e) => setName(e.target.value)} 
+          />
+        </Section>
+
+        <Section>
+          <Label htmlFor="meeting-input">Meeting ID</Label>
+          <Input
+            id="meeting-input"
+            type="text"
+            placeholder="Enter a shared meeting ID..."
+            value={meetingId}
+            onChange={(e) => setMeetingId(e.target.value)}
           />
         </Section>
 
@@ -47,7 +95,10 @@ export default function IdentitySetup() {
           </RoleSelector>
         </Section>
 
-        <ContinueButton onClick={handleComplete} disabled={!name || !role}>
+        <ContinueButton
+          onClick={handleComplete}
+          disabled={!name || !role || !meetingId || !avatarSeed}
+        >
           Continue
         </ContinueButton>
       </Card>
@@ -85,6 +136,60 @@ const Subtitle = styled.p`
   font-size: 1.1em;
   color: var(--text-color-muted);
   margin: 0 0 32px;
+`;
+
+const AvatarWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 24px;
+`;
+
+const AvatarPreview = styled.div`
+  width: 80px;
+  height: 80px;
+  border-radius: 20px;
+  background-color: var(--background-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border-color);
+  position: relative;
+`;
+
+const AvatarImg = styled.img`
+  width: 100%;
+  height: 100%;
+  border-radius: 20px;
+`;
+
+const AvatarRefreshBtn = styled.button`
+  position: absolute;
+  bottom: -6px;
+  right: -6px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--surface-color);
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s;
+
+  &:hover {
+    transform: scale(1.1);
+    border-color: var(--text-color-muted);
+  }
+`;
+
+const AvatarHintText = styled.span`
+  font-size: 0.85em;
+  color: var(--text-color-muted);
 `;
 
 const Section = styled.div`

@@ -4,6 +4,7 @@ import CoCreation from "./pages/CoCreation.jsx";
 import IdentitySetup from "./components/IdentitySetup.jsx";
 import SharedContextSetupPage from "./pages/SharedContextSetup.jsx";
 import FinalShowcasePage from "./pages/FinalShowcase.jsx";
+import SessionLobbyPage from "./pages/SessionLobby.jsx";
 
 const GlobalStyle = createGlobalStyle`
   :root {
@@ -44,6 +45,7 @@ export default function App() {
       <Router>
         <Routes>
           <Route path="/" element={<IdentitySetup />} />
+          <Route path="/lobby" element={<SessionLobbyPage />} />
           <Route path="/shared-context" element={<SharedContextSetupPage />} />
           <Route path="/cocreation" element={<CoCreation />} />
           <Route path="/showcase" element={<FinalShowcasePage />} />

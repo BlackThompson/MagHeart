@@ -60,7 +60,10 @@ const STATE_FLOW = [
 export default function SharedContextSetupPage() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { name, role } = location.state || {};
+  const { name, role, meetingId: stateMeetingId } = location.state || {};
+
+  const querySessionId = new URLSearchParams(location.search).get('sessionId');
+  const meetingId = stateMeetingId || querySessionId || 'default-session';
 
   const isLocal = role === 'local';
   const isRemote = role === 'remote';
@@ -85,10 +88,11 @@ export default function SharedContextSetupPage() {
 
   const handleNext = () => {
     if (!canProceed) return;
-    navigate('/cocreation', {
+    navigate(`/cocreation?sessionId=${encodeURIComponent(meetingId)}`, {
       state: {
         name,
         role,
+        meetingId,
         sharedContext: {
           atmosphere,
           styleTrend,

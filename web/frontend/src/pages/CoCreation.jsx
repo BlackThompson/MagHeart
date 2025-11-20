@@ -27,9 +27,9 @@ export default function CoCreationPage() {
     }
   }, [name, role, navigate]);
 
-  const querySessionId = new URLSearchParams(location.search).get('sessionId');
-  const sessionId = stateMeetingId || querySessionId || 'default-session';
-  const { messages, sendMessage, isConnected } = useCoCreationSocket(sessionId, name);
+  const queryMeetingId = new URLSearchParams(location.search).get('meetingId');
+  const meetingId = stateMeetingId || queryMeetingId || 'default-meeting';
+  const { messages, sendMessage, isConnected } = useCoCreationSocket(meetingId, name);
 
   if (!name || !role) {
     return null; // Render nothing while redirecting
@@ -135,8 +135,8 @@ export default function CoCreationPage() {
           <ProgressInfo>Step 2 / 3</ProgressInfo>
           <PrimaryButton
             onClick={() =>
-              navigate(`/showcase?sessionId=${encodeURIComponent(sessionId)}`, {
-                state: { name, role, sharedContext, meetingId: sessionId },
+              navigate(`/showcase?meetingId=${encodeURIComponent(meetingId)}`, {
+                state: { name, role, sharedContext, meetingId },
               })
             }
           >

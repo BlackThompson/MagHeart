@@ -9,8 +9,8 @@ export default function SessionLobbyPage() {
   const navigate = useNavigate();
   const { name, role, meetingId: stateMeetingId, avatarSeed: stateAvatarSeed } = location.state || {};
 
-  const querySessionId = new URLSearchParams(location.search).get('sessionId');
-  const sessionId = stateMeetingId || querySessionId || 'default-session';
+  const queryMeetingId = new URLSearchParams(location.search).get('meetingId');
+  const meetingId = stateMeetingId || queryMeetingId || 'default-meeting';
 
   const [copied, setCopied] = useState(false);
 
@@ -20,10 +20,8 @@ export default function SessionLobbyPage() {
     name ||
     'anonymous';
 
-  const { messages, sendMessage, isConnected, heartRates, participants: serverParticipants } = useCoCreationSocket(
-    sessionId,
-    name || '',
-  );
+  const { messages, sendMessage, isConnected, heartRates, participants: serverParticipants } =
+    useCoCreationSocket(meetingId, name || '');
 
   useEffect(() => {
     if (!name || !role) {
@@ -68,7 +66,7 @@ export default function SessionLobbyPage() {
   }, [serverParticipants, name, role, selfAvatarSeed]);
 
   const handleCopySession = () => {
-    navigator.clipboard.writeText(sessionId);
+    navigator.clipboard.writeText(meetingId);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -83,8 +81,8 @@ export default function SessionLobbyPage() {
         <Brand>MagHeart Lobby</Brand>
         <HeaderRight>
           <SessionTag onClick={handleCopySession}>
-            <span className="label">Session:</span>
-            <span className="id">{sessionId}</span>
+            <span className="label">Meeting:</span>
+            <span className="id">{meetingId}</span>
             {copied ? <Check size={14} /> : <Copy size={14} />}
           </SessionTag>
           <ConnectionStatus $connected={isConnected}>
@@ -175,8 +173,8 @@ export default function SessionLobbyPage() {
           {role === 'local' ? (
              <StartButton
                onClick={() =>
-                 navigate(`/shared-context?sessionId=${encodeURIComponent(sessionId)}`, {
-                   state: { name, role, meetingId: sessionId },
+                 navigate(`/shared-context?meetingId=${encodeURIComponent(meetingId)}`, {
+                   state: { name, role, meetingId },
                  })
                }
              >

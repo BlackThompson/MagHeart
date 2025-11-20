@@ -17,9 +17,9 @@ export default function FinalShowcasePage() {
     }
   }, [name, role, navigate]);
 
-  const querySessionId = new URLSearchParams(location.search).get('sessionId');
-  const sessionId = stateMeetingId || querySessionId || 'default-session';
-  const { messages, isConnected } = useCoCreationSocket(sessionId, name);
+  const queryMeetingId = new URLSearchParams(location.search).get('meetingId');
+  const meetingId = stateMeetingId || queryMeetingId || 'default-meeting';
+  const { messages, isConnected } = useCoCreationSocket(meetingId, name);
 
   if (!name || !role) {
     return null;

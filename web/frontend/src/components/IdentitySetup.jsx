@@ -25,11 +25,11 @@ export default function IdentitySetup() {
 
   const handleComplete = () => {
     if (name && role && meetingId && avatarSeed) {
-      const sessionId = meetingId.trim();
+      const finalMeetingId = meetingId.trim();
       const finalSeed = avatarSeed.trim() || Math.random().toString(36).slice(2);
       window.localStorage.setItem('magheart_avatar_seed', finalSeed);
-      navigate(`/lobby?sessionId=${encodeURIComponent(sessionId)}`, {
-        state: { name, role, meetingId: sessionId, avatarSeed: finalSeed },
+      navigate(`/lobby?meetingId=${encodeURIComponent(finalMeetingId)}`, {
+        state: { name, role, meetingId: finalMeetingId, avatarSeed: finalSeed },
       });
     }
   };

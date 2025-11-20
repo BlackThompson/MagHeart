@@ -26,6 +26,12 @@ async def get_user_id(
 @router.post("/api/heart_rate")
 async def post_heart_rate(payload: HeartRateIn, user_id: str = Depends(get_user_id)):
     data = payload.model_dump()
+    # Log received heart rate: sample time, user, bpm, device
+    sample_dt = datetime.fromtimestamp(payload.ts / 1000.0, tz=timezone.utc)
+    msg = f"[HR] ts={sample_dt.isoformat()} user={user_id} bpm={payload.bpm} device={payload.device or '-'}"
+    print(msg)
+    logger.info(msg)
+
     await append_heart_rate(user_id, data)
     event = {"id": payload.ts, "type": "hr", "data": data}
     await svc.set_latest(user_id, data)

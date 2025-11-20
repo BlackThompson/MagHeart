@@ -1,6 +1,7 @@
 import Foundation
 import HealthKit
 import Combine
+import WatchKit
 
 final class WorkoutManager: NSObject, ObservableObject, HKLiveWorkoutBuilderDelegate, HKWorkoutSessionDelegate {
     private let store = HKHealthStore()
@@ -115,9 +116,14 @@ final class WorkoutManager: NSObject, ObservableObject, HKLiveWorkoutBuilderDele
         let now = Date()
         guard now.timeIntervalSince(lastSentAt) > 0.9 else { return }
         lastSentAt = now
-        let payload = HeartRatePayload(bpm: bpm, ts: Date().epochMilliseconds, source: "watch_live", confidence: nil, device: "watch")
+        let deviceInfo = WKInterfaceDevice.current()
+        let deviceDescription = "\(deviceInfo.model) (\(deviceInfo.name))"
+        let payload = HeartRatePayload(
+            bpm: bpm,
+            ts: Date().epochMilliseconds,
+            device: deviceDescription
+        )
         WatchSessionManager.shared.sendHeartRate(payload)
     }
 }
-
 

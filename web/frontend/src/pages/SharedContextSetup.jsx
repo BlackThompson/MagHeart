@@ -62,8 +62,8 @@ export default function SharedContextSetupPage() {
   const navigate = useNavigate();
   const { name, role, meetingId: stateMeetingId } = location.state || {};
 
-  const querySessionId = new URLSearchParams(location.search).get('sessionId');
-  const meetingId = stateMeetingId || querySessionId || 'default-session';
+  const queryMeetingId = new URLSearchParams(location.search).get('meetingId');
+  const meetingId = stateMeetingId || queryMeetingId || 'default-meeting';
 
   const isLocal = role === 'local';
   const isRemote = role === 'remote';
@@ -88,7 +88,7 @@ export default function SharedContextSetupPage() {
 
   const handleNext = () => {
     if (!canProceed) return;
-    navigate(`/cocreation?sessionId=${encodeURIComponent(meetingId)}`, {
+    navigate(`/cocreation?meetingId=${encodeURIComponent(meetingId)}`, {
       state: {
         name,
         role,

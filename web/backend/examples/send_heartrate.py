@@ -9,15 +9,14 @@ from datetime import datetime
 # Backend URL
 BASE_URL = "http://127.0.0.1:8000"
 
-def send_heart_rate(bpm: int, user_id: str = "demo", source: str = "test_script"):
+def send_heart_rate(bpm: int, user_id: str = "demo", device: str = "test_script"):
     """Send a single heart rate measurement"""
     url = f"{BASE_URL}/api/heart_rate"
     
     payload = {
         "bpm": bpm,
         "ts": int(datetime.now().timestamp() * 1000),  # Current timestamp in ms
-        "source": source,
-        "confidence": 0.95
+        "device": device,
     }
     
     headers = {
@@ -128,4 +127,3 @@ if __name__ == "__main__":
         send_heart_rate(0)
     except Exception as e:
         print(f"\n❌ Error: {e}")
-

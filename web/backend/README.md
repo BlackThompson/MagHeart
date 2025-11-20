@@ -49,11 +49,11 @@ Send a test heart rate:
 curl -X POST http://127.0.0.1:8000/api/heart_rate \
   -H 'Content-Type: application/json' \
   -H 'X-User-Id: demo' \
-  -d '{"bpm":82, "ts": 1730704523123, "source":"watch_live", "confidence":0.93}'
+  -d '{"bpm":82, "ts": 1730704523123, "device":"watch_demo"}'
 ```
 
 CSV files will be stored under `data/`, for example `data/demo.csv` with columns:
-`ts,bpm,source,confidence,device`.
+`ts,bpm,device`.
 
 ## Arduino Integration
 

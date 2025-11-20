@@ -119,7 +119,7 @@ When you POST heart rate data, it will automatically be sent to Arduino:
 curl -X POST http://127.0.0.1:8000/api/heart_rate \
   -H 'Content-Type: application/json' \
   -H 'X-User-Id: demo' \
-  -d '{"bpm":75, "ts": 1730704523123, "source":"watch_live"}'
+  -d '{"bpm":75, "ts": 1730704523123, "device":"watch_live"}'
 ```
 
 **Backend logs:**
@@ -238,4 +238,3 @@ If everything works, you should see:
 - ✅ Physical magnetic device pulsing with the heartbeat rhythm
 
 Enjoy your real-time heart visualization! 💓
-

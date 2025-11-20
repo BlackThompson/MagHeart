@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 
-const useCoCreationSocket = (sessionId, userId) => {
+const useCoCreationSocket = (meetingId, userId) => {
   const [messages, setMessages] = useState([]);
   const [isConnected, setIsConnected] = useState(false);
   const [heartRates, setHeartRates] = useState({});
@@ -11,7 +11,7 @@ const useCoCreationSocket = (sessionId, userId) => {
   const reconnectAttempts = useRef(0);
 
   const connect = useCallback(() => {
-    if (!sessionId || !userId) return;
+    if (!meetingId || !userId) return;
 
     // Clean up existing connection if any
     if (websocket.current) {
@@ -19,7 +19,7 @@ const useCoCreationSocket = (sessionId, userId) => {
     }
 
     const wsProtocol = window.location.protocol === 'https' ? 'wss' : 'ws';
-    const wsUrl = `${wsProtocol}://${window.location.host}/cocreation/ws/${sessionId}/${userId}`;
+    const wsUrl = `${wsProtocol}://${window.location.host}/cocreation/ws/${meetingId}/${userId}`;
 
     console.log(`Connecting to WebSocket: ${wsUrl}`);
     websocket.current = new WebSocket(wsUrl);
@@ -78,7 +78,7 @@ const useCoCreationSocket = (sessionId, userId) => {
       console.error('WebSocket error:', error);
       // onerror will usually be followed by onclose
     };
-  }, [sessionId, userId]);
+  }, [meetingId, userId]);
 
   useEffect(() => {
     connect();

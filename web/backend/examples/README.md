@@ -49,13 +49,13 @@ Send heart rate via command line:
 curl -X POST http://127.0.0.1:8000/api/heart_rate \
   -H 'Content-Type: application/json' \
   -H 'X-User-Id: demo' \
-  -d '{"bpm":80, "ts": '$(date +%s000)', "source":"curl_test"}'
+  -d '{"bpm":80, "ts": '$(date +%s000)', "device":"curl_test"}'
 
 # Stop heartbeat
 curl -X POST http://127.0.0.1:8000/api/heart_rate \
   -H 'Content-Type: application/json' \
   -H 'X-User-Id: demo' \
-  -d '{"bpm":0, "ts": '$(date +%s000)', "source":"curl_test"}'
+  -d '{"bpm":0, "ts": '$(date +%s000)', "device":"curl_test"}'
 ```
 
 ### 3. Check Arduino Status
@@ -93,8 +93,7 @@ func sendHeartRate(bpm: Int) {
     let payload: [String: Any] = [
         "bpm": bpm,
         "ts": Int(Date().timeIntervalSince1970 * 1000),
-        "source": "apple_watch",
-        "confidence": 0.95
+        "device": "apple_watch"
     ]
     
     request.httpBody = try? JSONSerialization.data(withJSONObject: payload)
@@ -116,8 +115,7 @@ async function sendHeartRate(bpm) {
     body: JSON.stringify({
       bpm: bpm,
       ts: Date.now(),
-      source: 'web_app',
-      confidence: 0.95
+      device: 'web_app'
     })
   });
   
@@ -170,4 +168,3 @@ await sendHeartRate(75);
 4. **Rate limiting**: Don't send heart rate updates too frequently (max 1-2 per second is reasonable)
 
 5. **Error handling**: The API will still work even if Arduino is disconnected - it gracefully handles serial errors
-

@@ -7,7 +7,7 @@ from typing import Optional, Dict, Any
 from ..config import DATA_DIR
 
 
-HEADER = ["ts", "bpm", "source", "confidence", "device"]
+HEADER = ["ts", "bpm", "device"]
 
 
 def _csv_path(user_id: str) -> str:
@@ -27,8 +27,6 @@ def _row_from_record(record: Dict[str, Any]):
     return [
         record.get("ts"),
         record.get("bpm"),
-        record.get("source"),
-        record.get("confidence"),
         record.get("device"),
     ]
 
@@ -68,9 +66,7 @@ async def read_latest(user_id: str) -> Optional[Dict[str, Any]]:
             return {
                 "ts": int(parts[0]) if parts[0] else None,
                 "bpm": int(parts[1]) if parts[1] else None,
-                "source": parts[2] or None if len(parts) > 2 else None,
-                "confidence": float(parts[3]) if len(parts) > 3 and parts[3] else None,
-                "device": parts[4] or None if len(parts) > 4 else None,
+                "device": parts[2] or None if len(parts) > 2 else None,
             }
         except Exception:
             return None

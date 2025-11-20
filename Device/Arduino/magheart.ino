@@ -73,14 +73,25 @@ void loop()
       systoleDuration = beatInterval * SYSTOLE_RATIO;
       diastoleDuration = beatInterval * DIASTOLE_RATIO;
 
-      // 重置心跳状态
-      isBeating = true;
-      isPeak = true;
-      lastBeatTime = millis();
-      phaseStartTime = millis();
+      // 如果是第一次启动，从高峰期开始
+      if (!isBeating)
+      {
+        isPeak = true;
+        ledcWrite(pwmPin, PWM_PEAK);
+        Serial.print("🚀 首次启动 | ");
+      }
+      else
+      {
+        // 已经在跳动中，保持当前阶段，只重置阶段开始时间
+        // 这样可以平滑过渡到新的心率，避免卡顿
+        Serial.print("🔄 调整心率 | 当前阶段: ");
+        Serial.print(isPeak ? "收缩期" : "舒张期");
+        Serial.print(" | ");
+      }
 
-      // 立即开始心跳高峰
-      ledcWrite(pwmPin, PWM_PEAK);
+      isBeating = true;
+      lastBeatTime = millis();
+      phaseStartTime = millis(); // 重置当前阶段的计时
 
       Serial.println("=================================");
       Serial.print("✅ 心率设置为: ");

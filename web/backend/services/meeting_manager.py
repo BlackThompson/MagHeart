@@ -142,9 +142,28 @@ class MeetingManager:
 
     async def update_phase(self, meeting_id: str, phase: str, updated_by: str) -> None:
         """
-        Update global meeting phase and broadcast.
+        Update global meeting phase and broadcast (host-only).
         """
         self._ensure_meeting(meeting_id)
+
+        participant = self._participants.get(meeting_id, {}).get(updated_by)
+        role = participant.get("role") if participant else None
+        if role != "host":
+            now_str = datetime.now().isoformat()
+            warning_event = {
+                "type": "phase_change_denied",
+                "payload": {
+                    "meetingId": meeting_id,
+                    "requestedPhase": phase,
+                    "updatedBy": updated_by,
+                    "reason": "insufficient_permissions",
+                    "requiredRole": "host",
+                    "timestamp": now_str,
+                },
+            }
+            await self._send_direct(json.dumps(warning_event), meeting_id, updated_by)
+            return
+
         now_str = datetime.now().isoformat()
         meta = self._meta[meeting_id]
         meta["phase"] = phase
@@ -283,6 +302,28 @@ class MeetingManager:
 
             if not conns:
                 del self._connections[meeting_id][user_id]
+
+    async def _send_direct(self, message: str, meeting_id: str, user_id: str) -> None:
+        """
+        Send a raw JSON string to a specific user within a meeting.
+        """
+        if meeting_id not in self._connections:
+            return
+        conns = self._connections[meeting_id].get(user_id)
+        if not conns:
+            return
+
+        for ws in list(conns):
+            try:
+                await ws.send_text(message)
+            except (RuntimeError, WebSocketDisconnect, Exception):
+                try:
+                    conns.remove(ws)
+                except ValueError:
+                    pass
+
+        if meeting_id in self._connections and not self._connections[meeting_id].get(user_id):
+            self._connections[meeting_id].pop(user_id, None)
 
 
 meeting_manager = MeetingManager()

@@ -5,7 +5,6 @@ class CoCreationSocketClient {
   constructor() {
     this.ws = null;
     this.config = null;
-    this.isConnected = false;
     this.reconnectAttempts = 0;
     this.reconnectTimeoutId = null;
     this.heartbeatIntervalId = null;
@@ -85,7 +84,6 @@ class CoCreationSocketClient {
     }
 
     this.ws.onopen = () => {
-      this.isConnected = true;
       this.reconnectAttempts = 0;
       this.state.isConnected = true;
       this._emit();
@@ -99,7 +97,6 @@ class CoCreationSocketClient {
     };
 
     this.ws.onclose = (event) => {
-      this.isConnected = false;
       this.state.isConnected = false;
       this._clearHeartbeat();
       this._emit();
@@ -123,10 +120,11 @@ class CoCreationSocketClient {
 
   _sendJoin() {
     const { role, avatarSeed, initialPhase = 'lobby' } = this.config || {};
+    const phase = this.state.meetingPhase || initialPhase || 'lobby';
     const payload = {
       role,
       avatarSeed,
-      phase: initialPhase,
+      phase,
       timestamp: new Date().toISOString(),
     };
     this._sendRaw({
@@ -137,16 +135,16 @@ class CoCreationSocketClient {
 
   _startHeartbeat() {
     this._clearHeartbeat();
-    const { initialPhase = 'lobby' } = this.config || {};
 
     this.heartbeatIntervalId = window.setInterval(() => {
       if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
         return;
       }
+      const phase = this.state.meetingPhase || this.config?.initialPhase || 'lobby';
       this._sendRaw({
         type: 'heartbeat',
         payload: {
-          phase: initialPhase,
+          phase,
           timestamp: new Date().toISOString(),
         },
       });
@@ -289,6 +287,8 @@ class CoCreationSocketClient {
       }
       this.ws = null;
     }
+    this.state.isConnected = false;
+    this._emit();
   }
 
   _teardownSocketOnly() {

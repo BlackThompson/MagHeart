@@ -1,0 +1,84 @@
+{
+  "cards": [
+    {
+      "id": "mood-soft",
+      "target": "local",
+      "title": "Soft Mood",
+      "prompt": "In one sentence, describe how soft or light you feel in this moment.",
+      "inputType": "text"
+    },
+    {
+      "id": "mood-intense",
+      "target": "local",
+      "title": "Intense Mood",
+      "prompt": "What is one thing that makes your inner rhythm feel more intense today?",
+      "inputType": "text"
+    },
+    {
+      "id": "energy-check",
+      "target": "local",
+      "title": "Energy Check",
+      "prompt": "On a scale from 1–10, where is your energy right now? Add a word to color it.",
+      "inputType": "text"
+    },
+    {
+      "id": "style-everyday",
+      "target": "remote",
+      "title": "Everyday You",
+      "prompt": "If today was a simple daily scene, what would you be doing in it?",
+      "inputType": "text"
+    },
+    {
+      "id": "style-bold",
+      "target": "remote",
+      "title": "Bold Stroke",
+      "prompt": "If you added one bold detail to yourself today, what would it be?",
+      "inputType": "text"
+    },
+    {
+      "id": "identity-lens",
+      "target": "both",
+      "title": "Identity Lens",
+      "prompt": "Complete the sentence: \"Today I move through the world like someone who…\"",
+      "inputType": "text"
+    },
+    {
+      "id": "intent-message",
+      "target": "both",
+      "title": "Hidden Message",
+      "prompt": "If this LEGO figure could say one thing on your behalf, what would you want it to say?",
+      "inputType": "text"
+    },
+    {
+      "id": "intent-boundary",
+      "target": "both",
+      "title": "Soft Boundary",
+      "prompt": "What is one thing you hope this space protects for you today?",
+      "inputType": "text"
+    },
+    {
+      "id": "remote-checkin",
+      "target": "remote",
+      "title": "Remote Check-In",
+      "prompt": "If the other side could feel your presence right now, what would you want them to sense?",
+      "inputType": "text"
+    },
+    {
+      "id": "remote-surprise",
+      "target": "remote",
+      "title": "Small Surprise",
+      "prompt": "Name one small surprise you would secretly prepare for the other side today.",
+      "inputType": "text"
+    },
+    {
+      "id": "remote-question",
+      "target": "both",
+      "title": "Hidden Question",
+      "prompt": "If you could ask the other side one honest question with no judgement, what would you ask?",
+      "inputType": "text"
+    }
+  ]
+}
+
+
+

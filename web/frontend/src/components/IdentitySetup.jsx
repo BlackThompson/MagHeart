@@ -8,6 +8,7 @@ export default function IdentitySetup() {
   const [role, setRole] = useState(null); // 'local' or 'remote'
   const [meetingId, setMeetingId] = useState('');
   const [avatarSeed, setAvatarSeed] = useState('');
+  const [mode, setMode] = useState(null); // 'create' | 'join'
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -23,13 +24,25 @@ export default function IdentitySetup() {
     setAvatarSeed(Math.random().toString(36).slice(2));
   };
 
-  const handleComplete = () => {
+  const handleCreateMeeting = () => {
+    if (!name || !avatarSeed) return;
+
+    const generatedMeetingId = Math.random().toString(36).slice(2, 10);
+    const finalSeed = avatarSeed.trim() || Math.random().toString(36).slice(2);
+    window.localStorage.setItem('magheart_avatar_seed', finalSeed);
+
+    navigate(`/lobby?meetingId=${encodeURIComponent(generatedMeetingId)}`, {
+      state: { name, role: 'host', meetingId: generatedMeetingId, avatarSeed: finalSeed },
+    });
+  };
+
+  const handleJoinMeeting = () => {
     if (name && role && meetingId && avatarSeed) {
-      const finalMeetingId = meetingId.trim();
+      const trimmedMeetingId = meetingId.trim();
       const finalSeed = avatarSeed.trim() || Math.random().toString(36).slice(2);
       window.localStorage.setItem('magheart_avatar_seed', finalSeed);
-      navigate(`/lobby?meetingId=${encodeURIComponent(finalMeetingId)}`, {
-        state: { name, role, meetingId: finalMeetingId, avatarSeed: finalSeed },
+      navigate(`/lobby?meetingId=${encodeURIComponent(trimmedMeetingId)}`, {
+        state: { name, role, meetingId: trimmedMeetingId, avatarSeed: finalSeed },
       });
     }
   };
@@ -38,69 +51,107 @@ export default function IdentitySetup() {
     <Wrapper>
       <Card>
         <Title>Identity Selection</Title>
-        <Subtitle>Who are you in this session?</Subtitle>
+        <Subtitle>How would you like to join?</Subtitle>
 
-        <AvatarWrapper>
-          <AvatarPreview>
-            {avatarSeed && (
-              <AvatarImg
-                src={`https://api.dicebear.com/9.x/pixel-art/svg?seed=${encodeURIComponent(
-                  avatarSeed,
-                )}`}
-                alt="Avatar preview"
+        <Section>
+          <Label>Meeting mode</Label>
+          <ModeSelector>
+            <ModeButton
+              type="button"
+              $selected={mode === 'create'}
+              onClick={() => setMode('create')}
+            >
+              <span className="title">Create a new meeting</span>
+              <span className="hint">You will be the host (local)</span>
+            </ModeButton>
+            <ModeButton
+              type="button"
+              $selected={mode === 'join'}
+              onClick={() => setMode('join')}
+            >
+              <span className="title">Join an existing meeting</span>
+              <span className="hint">Use a shared meeting ID</span>
+            </ModeButton>
+          </ModeSelector>
+        </Section>
+
+        {mode && (
+          <>
+            <AvatarWrapper>
+              <AvatarPreview>
+                {avatarSeed && (
+                  <AvatarImg
+                    src={`https://api.dicebear.com/9.x/pixel-art/svg?seed=${encodeURIComponent(
+                      avatarSeed,
+                    )}`}
+                    alt="Avatar preview"
+                  />
+                )}
+                <AvatarRefreshBtn onClick={randomizeAvatar} title="Change Avatar">
+                  <RefreshCw size={16} />
+                </AvatarRefreshBtn>
+              </AvatarPreview>
+              <AvatarHintText>Your meeting avatar</AvatarHintText>
+            </AvatarWrapper>
+            
+            <Section>
+              <Label htmlFor="name-input">Your Name</Label>
+              <Input 
+                id="name-input"
+                type="text" 
+                placeholder="Enter your name..." 
+                value={name} 
+                onChange={(e) => setName(e.target.value)} 
               />
+            </Section>
+
+            {mode === 'join' && (
+              <Section>
+                <Label htmlFor="meeting-input">Meeting ID</Label>
+                <Input
+                  id="meeting-input"
+                  type="text"
+                  placeholder="Enter a shared meeting ID..."
+                  value={meetingId}
+                  onChange={(e) => setMeetingId(e.target.value)}
+                />
+              </Section>
             )}
-            <AvatarRefreshBtn onClick={randomizeAvatar} title="Change Avatar">
-              <RefreshCw size={16} />
-            </AvatarRefreshBtn>
-          </AvatarPreview>
-          <AvatarHintText>Your session avatar</AvatarHintText>
-        </AvatarWrapper>
-        
-        <Section>
-          <Label htmlFor="name-input">Your Name</Label>
-          <Input 
-            id="name-input"
-            type="text" 
-            placeholder="Enter your name..." 
-            value={name} 
-            onChange={(e) => setName(e.target.value)} 
-          />
-        </Section>
 
-        <Section>
-          <Label htmlFor="meeting-input">Meeting ID</Label>
-          <Input
-            id="meeting-input"
-            type="text"
-            placeholder="Enter a shared meeting ID..."
-            value={meetingId}
-            onChange={(e) => setMeetingId(e.target.value)}
-          />
-        </Section>
+            {mode === 'join' && (
+              <Section>
+                <Label>Your Role</Label>
+                <RoleSelector>
+                  <RoleButton $selected={role === 'local'} onClick={() => setRole('local')}>
+                    <User size={32} className="icon" />
+                    <span className="text">Local</span>
+                    <small>(Assembling LEGOs)</small>
+                  </RoleButton>
+                  <RoleButton $selected={role === 'remote'} onClick={() => setRole('remote')}>
+                    <Activity size={32} className="icon" />
+                    <span className="text">Remote</span>
+                    <small>(Guiding / Observing)</small>
+                  </RoleButton>
+                </RoleSelector>
+              </Section>
+            )}
 
-        <Section>
-          <Label>Your Role</Label>
-          <RoleSelector>
-            <RoleButton $selected={role === 'local'} onClick={() => setRole('local')}>
-              <User size={32} className="icon" />
-              <span className="text">Local</span>
-              <small>(Assembling LEGOs)</small>
-            </RoleButton>
-            <RoleButton $selected={role === 'remote'} onClick={() => setRole('remote')}>
-              <Activity size={32} className="icon" />
-              <span className="text">Remote</span>
-              <small>(Guiding / Observing)</small>
-            </RoleButton>
-          </RoleSelector>
-        </Section>
+            {mode === 'create' && (
+              <CreateMeetingButton onClick={handleCreateMeeting} disabled={!name || !avatarSeed}>
+                Create Meeting (Host)
+              </CreateMeetingButton>
+            )}
 
-        <ContinueButton
-          onClick={handleComplete}
-          disabled={!name || !role || !meetingId || !avatarSeed}
-        >
-          Continue
-        </ContinueButton>
+            {mode === 'join' && (
+              <ContinueButton
+                onClick={handleJoinMeeting}
+                disabled={!name || !role || !meetingId || !avatarSeed}
+              >
+                Join Meeting
+              </ContinueButton>
+            )}
+          </>
+        )}
       </Card>
     </Wrapper>
   );
@@ -223,6 +274,45 @@ const Input = styled.input`
   }
 `;
 
+const ModeSelector = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+`;
+
+const ModeButton = styled.button`
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 16px 18px;
+  border-radius: 16px;
+  border: 2px solid ${props => props.$selected ? 'var(--primary-color)' : 'var(--border-color)'};
+  background-color: ${props => props.$selected ? 'rgba(99, 102, 241, 0.05)' : 'var(--background-color)'};
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+
+  .title {
+    font-size: 1em;
+    font-weight: 600;
+    color: ${props => props.$selected ? 'var(--primary-color)' : 'var(--text-color)'};
+    margin-bottom: 4px;
+  }
+
+  .hint {
+    font-size: 0.85em;
+    color: var(--text-color-muted);
+  }
+
+  &:hover {
+    border-color: var(--primary-color);
+    background-color: rgba(99, 102, 241, 0.05);
+    transform: translateY(-2px);
+  }
+`;
+
 const RoleSelector = styled.div`
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -262,6 +352,30 @@ const RoleButton = styled.button`
     transform: translateY(-2px);
     box-shadow: var(--shadow-md);
     border-color: ${props => props.$selected ? 'var(--primary-color)' : 'var(--text-color-muted)'};
+  }
+`;
+
+const CreateMeetingButton = styled.button`
+  width: 100%;
+  padding: 14px;
+  border-radius: 12px;
+  border: 1px dashed var(--primary-color);
+  background: rgba(99, 102, 241, 0.04);
+  color: var(--primary-color);
+  font-size: 0.95em;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: all 0.2s;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  &:not(:disabled):hover {
+    background: rgba(99, 102, 241, 0.08);
+    transform: translateY(-1px);
   }
 `;
 

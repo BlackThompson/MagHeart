@@ -2,26 +2,27 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import styled, { keyframes } from 'styled-components';
 import { HeartPulse, Wifi, WifiOff, Play, LogOut, Copy, Check } from 'lucide-react';
-import useCoCreationSocket from '../hooks/useCoCreationSocket';
+import { useMeetingSession } from '../context/MeetingSessionContext.jsx';
+import NavBar from '../components/NavBar.jsx';
 
 export default function SessionLobbyPage() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { name, role, meetingId: stateMeetingId, avatarSeed: stateAvatarSeed } = location.state || {};
-
-  const queryMeetingId = new URLSearchParams(location.search).get('meetingId');
-  const meetingId = stateMeetingId || queryMeetingId || 'default-meeting';
+  const {
+    name,
+    role,
+    meetingId,
+    avatarSeed: selfAvatarSeed,
+    messages,
+    isConnected,
+    heartRates,
+    participants: serverParticipants,
+    meetingPhase,
+    sendLeaveMeeting,
+    sendUpdatePhase,
+  } = useMeetingSession();
 
   const [copied, setCopied] = useState(false);
-
-  const selfAvatarSeed =
-    stateAvatarSeed ||
-    window.localStorage.getItem('magheart_avatar_seed') ||
-    name ||
-    'anonymous';
-
-  const { messages, sendMessage, isConnected, heartRates, participants: serverParticipants } =
-    useCoCreationSocket(meetingId, name || '');
 
   useEffect(() => {
     if (!name || !role) {
@@ -29,43 +30,29 @@ export default function SessionLobbyPage() {
     }
   }, [name, role, navigate]);
 
-  // Send initial presence when connected
-  useEffect(() => {
-    if (!sendMessage || !name || !role || !isConnected) return;
-    sendMessage({
-      type: 'presence',
-      payload: {
-        role,
-        phase: 'lobby',
-        avatarSeed: selfAvatarSeed,
-        timestamp: new Date().toISOString(),
-      },
+  // Host starts meeting: broadcast phase change, then navigate
+  const handleStartMeeting = () => {
+    if (sendUpdatePhase && name && role) {
+      sendUpdatePhase('shared_context_setup');
+    }
+
+    navigate(`/shared-context?meetingId=${encodeURIComponent(meetingId)}`, {
+      state: { name, role, meetingId },
     });
-  }, [sendMessage, name, role, selfAvatarSeed, isConnected]);
+  };
 
   const participantList = useMemo(() => {
     const list = Object.values(serverParticipants || {});
-    // Ensure self is in the list even if server hasn't echoed back yet (optimistic UI)
-    const selfExists = list.find(p => p.userId === name);
-    
-    let combined = [...list];
-    if (!selfExists && name) {
-        combined.push({
-            userId: name,
-            role,
-            avatarSeed: selfAvatarSeed,
-            isSelf: true,
-            status: 'online'
-        });
-    }
 
-    return combined.map(p => ({
+    return list
+      .map((p) => ({
         ...p,
-        isSelf: p.userId === name
-    })).sort((a, b) => (a.userId || '').localeCompare(b.userId || ''));
-  }, [serverParticipants, name, role, selfAvatarSeed]);
+        isSelf: p.userId === name,
+      }))
+      .sort((a, b) => (a.userId || '').localeCompare(b.userId || ''));
+  }, [serverParticipants, name]);
 
-  const handleCopySession = () => {
+  const handleCopyMeeting = () => {
     navigator.clipboard.writeText(meetingId);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -75,21 +62,16 @@ export default function SessionLobbyPage() {
     return null;
   }
 
+  const isHost = role === 'host';
+
   return (
     <PageWrapper>
-      <Header>
-        <Brand>MagHeart Lobby</Brand>
-        <HeaderRight>
-          <SessionTag onClick={handleCopySession}>
-            <span className="label">Meeting:</span>
-            <span className="id">{meetingId}</span>
-            {copied ? <Check size={14} /> : <Copy size={14} />}
-          </SessionTag>
-          <ConnectionStatus $connected={isConnected}>
-            {isConnected ? <Wifi size={18} /> : <WifiOff size={18} />}
-          </ConnectionStatus>
-        </HeaderRight>
-      </Header>
+      <NavBar
+        title="MagHeart Lobby"
+        subtitle="Gather everyone before starting. Check heart connections and get ready."
+        tagLabel={isConnected ? 'Online' : 'Offline'}
+        userLabel={`${name} (${role})`}
+      />
 
       <MainContent>
         <TopSection>
@@ -166,20 +148,21 @@ export default function SessionLobbyPage() {
         </LobbyContainer>
 
         <ActionFooter>
-          <LeaveButton onClick={() => navigate('/')}>
+          <LeaveButton
+            onClick={() => {
+              if (sendLeaveMeeting && name) {
+                sendLeaveMeeting('left_from_lobby');
+              }
+              navigate('/');
+            }}
+          >
             <LogOut size={18} /> Leave
           </LeaveButton>
           
-          {role === 'local' ? (
-             <StartButton
-               onClick={() =>
-                 navigate(`/shared-context?meetingId=${encodeURIComponent(meetingId)}`, {
-                   state: { name, role, meetingId },
-                 })
-               }
-             >
-               Start Session <Play size={18} fill="currentColor" />
-             </StartButton>
+          {isHost ? (
+            <StartButton onClick={handleStartMeeting}>
+              Start Meeting <Play size={18} fill="currentColor" />
+            </StartButton>
           ) : (
             <WaitingMessage>
               Waiting for host to start...
@@ -208,27 +191,6 @@ const PageWrapper = styled.div`
   height: 100vh;
   background-color: var(--background-color);
   overflow: hidden;
-`;
-
-const Header = styled.header`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px 32px;
-  background-color: var(--surface-color);
-  border-bottom: 1px solid var(--border-color);
-`;
-
-const Brand = styled.div`
-  font-weight: 700;
-  font-size: 1.1rem;
-  color: var(--text-color);
-`;
-
-const HeaderRight = styled.div`
-  display: flex;
-  gap: 12px;
-  align-items: center;
 `;
 
 const SessionTag = styled.button`
@@ -368,8 +330,14 @@ const RoleTag = styled.span`
   padding: 2px 8px;
   border-radius: 999px;
   font-weight: 600;
-  background: ${props => props.$role === 'local' ? 'rgba(99, 102, 241, 0.1)' : 'rgba(16, 185, 129, 0.1)'};
-  color: ${props => props.$role === 'local' ? 'var(--primary-color)' : 'var(--success-color)'};
+  background: ${props =>
+    props.$role === 'local' || props.$role === 'host'
+      ? 'rgba(99, 102, 241, 0.1)'
+      : 'rgba(16, 185, 129, 0.1)'};
+  color: ${props =>
+    props.$role === 'local' || props.$role === 'host'
+      ? 'var(--primary-color)'
+      : 'var(--success-color)'};
 `;
 
 const OfflineTag = styled.span`

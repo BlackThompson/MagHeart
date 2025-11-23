@@ -3,7 +3,8 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import LocalInterpretationPanel from '../components/cocreation/LocalInterpretationPanel';
 import LegoSketchPad from '../components/cocreation/LegoSketchPad';
-import useCoCreationSocket from '../hooks/useCoCreationSocket';
+import { useMeetingSession } from '../context/MeetingSessionContext.jsx';
+import NavBar from '../components/NavBar.jsx';
 import {
   Wifi,
   WifiOff,
@@ -19,7 +20,18 @@ import {
 export default function CoCreationPage() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { name, role, sharedContext, meetingId: stateMeetingId } = location.state || {};
+  const { sharedContext } = location.state || {};
+
+  const {
+    name,
+    role,
+    meetingId,
+    messages,
+    sendMessage,
+    sendUpdatePhase,
+    sharedContext: socketSharedContext,
+    isConnected,
+  } = useMeetingSession();
 
   useEffect(() => {
     if (!name || !role) {
@@ -27,35 +39,44 @@ export default function CoCreationPage() {
     }
   }, [name, role, navigate]);
 
-  const queryMeetingId = new URLSearchParams(location.search).get('meetingId');
-  const meetingId = stateMeetingId || queryMeetingId || 'default-meeting';
-  const { messages, sendMessage, isConnected } = useCoCreationSocket(meetingId, name);
-
   if (!name || !role) {
     return null; // Render nothing while redirecting
   }
 
   const isRemote = role === 'remote';
-  const isLocal = role === 'local';
+  const isHost = role === 'host';
+  const isLocalSide = role === 'local' || role === 'host';
 
-  const atmosphere = sharedContext?.atmosphere;
-  const styleTrend = sharedContext?.styleTrend;
-  const identity = sharedContext?.identity;
-  const intents = sharedContext?.intents || [];
-  const stateFlow = sharedContext?.stateFlow;
+  const effectiveSharedContext = socketSharedContext || sharedContext || {};
+  const cardStage = effectiveSharedContext.cardStage || {
+    status: 'in_progress',
+    local: { played: [] },
+    remote: { drawn: [] },
+  };
+
+  const qaItems = [
+    ...(cardStage.local?.played || []).map((p) => ({
+      side: 'local',
+      title: p.title,
+      prompt: p.prompt,
+      answer: p.answer,
+    })),
+    ...(cardStage.remote?.drawn || []).map((d) => ({
+      side: 'remote',
+      title: d.title || d.cardId,
+      prompt: d.prompt,
+      answer: d.answer,
+    })),
+  ];
 
   return (
     <PageWrapper>
-      <Header>
-        <HeaderTitle>Co-Creation Stage</HeaderTitle>
-        <UserInfo>
-          {name} <RoleBadge>{role}</RoleBadge>
-        </UserInfo>
-        <ConnectionStatus $connected={isConnected}>
-          {isConnected ? <Wifi size={18} /> : <WifiOff size={18} />}
-          {isConnected ? 'Connected' : 'Disconnected'}
-        </ConnectionStatus>
-      </Header>
+      <NavBar
+        title="Co-Creation Stage"
+        subtitle="Use LEGO pieces and prompts from the shared context to build together."
+        tagLabel={isRemote ? 'Remote View' : 'Local View'}
+        userLabel={`${name} (${role})`}
+      />
 
       <MainContent>
         {isRemote ? (
@@ -74,44 +95,31 @@ export default function CoCreationPage() {
         ) : (
           <>
             <SideColumn>
-              <PanelTitle>Shared Context</PanelTitle>
+              <PanelTitle>Card Q&A Summary</PanelTitle>
               <ContextCard>
-                <ContextRow>
-                  <ContextLabel>
-                    <Sun size={16} /> Atmosphere
-                  </ContextLabel>
-                  <ContextValue>{atmosphere || 'Waiting for selection'}</ContextValue>
-                </ContextRow>
-                <ContextRow>
-                  <ContextLabel>
-                    <Layers size={16} /> Style Direction
-                  </ContextLabel>
-                  <ContextValue>{styleTrend || 'Waiting for selection'}</ContextValue>
-                </ContextRow>
-                <ContextRow>
-                  <ContextLabel>
-                    <User size={16} /> “Looks Like You”
-                  </ContextLabel>
-                  <ContextValue>{identity || 'Waiting for selection'}</ContextValue>
-                </ContextRow>
-                <ContextRow>
-                  <ContextLabel>
-                    <Feather size={16} /> Intent Clues
-                  </ContextLabel>
-                  <TagList>
-                    {intents.length === 0 ? (
-                      <Tag $muted>Waiting for selection</Tag>
-                    ) : (
-                      intents.map((intent) => <Tag key={intent}>{intent}</Tag>)
-                    )}
-                  </TagList>
-                </ContextRow>
-                <ContextRow>
-                  <ContextLabel>
-                    <Activity size={16} /> Participation State
-                  </ContextLabel>
-                  <ContextValue>{stateFlow || 'Waiting for selection'}</ContextValue>
-                </ContextRow>
+                {qaItems.length === 0 ? (
+                  <ContextRow>
+                    <ContextValue>No cards have been played yet.</ContextValue>
+                  </ContextRow>
+                ) : (
+                  qaItems.map((item, index) => (
+                    <ContextRow key={`${item.side}-${index}`}>
+                      <ContextLabel>
+                        {item.side === 'local' ? <Sun size={16} /> : <Feather size={16} />}
+                        {item.side === 'local' ? 'Local Side' : 'Remote Side'}
+                      </ContextLabel>
+                      <ContextValue>
+                        <strong>{item.title}</strong>
+                      </ContextValue>
+                      {item.prompt && (
+                        <ContextValue>
+                          <em>{item.prompt}</em>
+                        </ContextValue>
+                      )}
+                      {item.answer && <ContextValue>{item.answer}</ContextValue>}
+                    </ContextRow>
+                  ))
+                )}
               </ContextCard>
             </SideColumn>
             <MainColumn>
@@ -125,25 +133,28 @@ export default function CoCreationPage() {
             </MainColumn>
           </>
         )}
+        {isHost && (
+          <>
+            <FloatingPrevButton type="button" onClick={() => navigate(-1)} aria-label="Previous">
+              <ChevronLeft size={18} />
+            </FloatingPrevButton>
+            <FloatingNextButton
+              type="button"
+              onClick={() => {
+                if (sendUpdatePhase) {
+                  sendUpdatePhase('showcase');
+                }
+                navigate(`/showcase?meetingId=${encodeURIComponent(meetingId)}`, {
+                  state: { name, role, sharedContext, meetingId },
+                });
+              }}
+              aria-label="Next"
+            >
+              <ArrowRight size={18} />
+            </FloatingNextButton>
+          </>
+        )}
       </MainContent>
-      {isLocal && (
-        <FooterBar>
-          <FooterSpacer />
-          <SecondaryButton type="button" onClick={() => navigate(-1)}>
-            <ChevronLeft size={18} /> Previous
-          </SecondaryButton>
-          <ProgressInfo>Step 2 / 3</ProgressInfo>
-          <PrimaryButton
-            onClick={() =>
-              navigate(`/showcase?meetingId=${encodeURIComponent(meetingId)}`, {
-                state: { name, role, sharedContext, meetingId },
-              })
-            }
-          >
-            Next <ArrowRight size={18} />
-          </PrimaryButton>
-        </FooterBar>
-      )}
     </PageWrapper>
   );
 }
@@ -153,51 +164,6 @@ const PageWrapper = styled.div`
   flex-direction: column;
   min-height: 100vh;
   background-color: var(--background-color);
-`;
-
-const Header = styled.header`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  position: relative;
-  padding: 16px 32px;
-  background-color: var(--surface-color);
-  border-bottom: 1px solid var(--border-color);
-  box-shadow: var(--shadow-sm);
-  z-index: 10;
-  height: 72px;
-`;
-
-const HeaderTitle = styled.h1`
-  font-size: 1.2rem;
-  font-weight: 700;
-  color: var(--text-color);
-  margin: 0;
-`;
-
-const ConnectionStatus = styled.div`
-  position: absolute;
-  right: 32px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: ${props => (props.$connected ? 'var(--success-color)' : 'var(--error-color)')};
-  background-color: ${props => (props.$connected ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)')};
-  padding: 6px 12px;
-  border-radius: 999px;
-`;
-
-const UserInfo = styled.div`
-  position: absolute;
-  left: 32px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.95rem;
-  font-weight: 500;
-  color: var(--text-color);
 `;
 
 const RoleBadge = styled.span`
@@ -214,11 +180,12 @@ const MainContent = styled.main`
   display: grid;
   grid-template-columns: minmax(320px, 380px) minmax(0, 1fr);
   gap: 32px;
-  padding: 32px;
+  padding: 32px 32px 40px;
   flex: 1;
   max-width: 1600px;
   margin: 0 auto;
   width: 100%;
+  position: relative;
 `;
 
 const SideColumn = styled.div`
@@ -332,74 +299,50 @@ const BlurOverlay = styled.div`
   }
 `;
 
-const FooterBar = styled.footer`
+const FloatingPrevButton = styled.button`
   position: fixed;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  padding: 20px 40px;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  justify-content: flex-end;
-  background: linear-gradient(to top, var(--background-color) 80%, transparent);
-  pointer-events: none;
-`;
-
-const FooterSpacer = styled.div`
-  flex: 1;
-`;
-
-const ProgressInfo = styled.div`
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: var(--text-color-muted);
-  pointer-events: auto;
-`;
-
-const PrimaryButton = styled.button`
-  min-width: 140px;
-  padding: 12px 24px;
-  border-radius: 999px;
-  border: none;
-  font-size: 1rem;
-  font-weight: 600;
-  color: #ffffff;
-  background-color: var(--primary-color);
-  cursor: pointer;
-  pointer-events: auto;
-  box-shadow: var(--shadow-lg);
-  transition: all 0.2s ease;
+  left: 24px;
+  bottom: 24px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--border-color);
+  background-color: var(--surface-color);
+  color: var(--text-color);
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  box-shadow: var(--shadow-md);
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  z-index: 40;
 
   &:hover {
-    background-color: var(--primary-hover);
     transform: translateY(-2px);
-    box-shadow: 0 15px 30px -5px rgba(99, 102, 241, 0.4);
+    box-shadow: var(--shadow-lg);
   }
 `;
 
-const SecondaryButton = styled.button`
-  padding: 12px 24px;
-  border-radius: 999px;
-  border: 1px solid var(--border-color);
-  background-color: var(--surface-color);
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--text-color);
-  cursor: pointer;
-  pointer-events: auto;
-  transition: all 0.2s ease;
+const FloatingNextButton = styled.button`
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: none;
+  background-color: var(--primary-color);
+  color: #ffffff;
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
+  box-shadow: var(--shadow-lg);
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+  z-index: 40;
 
   &:hover {
-    background-color: var(--background-color);
-    border-color: var(--text-color-muted);
     transform: translateY(-2px);
+    background-color: var(--primary-hover);
   }
 `;

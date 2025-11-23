@@ -1,0 +1,53 @@
+{
+  "stages": [
+    {
+      "id": "mood",
+      "title": "Pulse of the Moment",
+      "description": "Tune into your current frequency. How does your heart resonate right now?",
+      "cards": [
+        { "id": "relaxed", "label": "Soft & Floating", "value": "Relaxed", "subtext": "Drifting lightly like a cloud." },
+        { "id": "energetic", "label": "Radiant & Alive", "value": "Energetic", "subtext": "Bursting with bright sparks." },
+        { "id": "calm", "label": "Steady & Deep", "value": "Calm", "subtext": "Still waters run deep." },
+        { "id": "playful", "label": "Whimsical", "value": "Playful", "subtext": "Ready for a surprise." },
+        { "id": "focused", "label": "Sharp & Clear", "value": "Focused", "subtext": "A single beam of light." }
+      ]
+    },
+    {
+      "id": "style",
+      "title": "Aesthetic Direction",
+      "description": "Define the texture of your presence. What kind of signal are you broadcasting?",
+      "cards": [
+        { "id": "daily", "label": "Effortless Casual", "value": "Daily", "subtext": "Comfort in the everyday." },
+        { "id": "formal", "label": "Structured Elegance", "value": "Formal", "subtext": "Poise and precision." },
+        { "id": "creative", "label": "Artistic Flow", "value": "Creative", "subtext": "Colors outside the lines." },
+        { "id": "adventurous", "label": "Wild Spirit", "value": "Adventurous", "subtext": "Ready for the unknown." },
+        { "id": "sporty", "label": "Dynamic Motion", "value": "Sporty", "subtext": "Built for speed and action." }
+      ]
+    },
+    {
+      "id": "identity",
+      "title": "Persona Echo",
+      "description": "A glimpse into your soul's reflection today. Who is looking back from the mirror?",
+      "cards": [
+        { "id": "outdoor", "label": "Nature's Child", "value": "Outdoor", "subtext": "Rooted in earth, reaching for sky." },
+        { "id": "thinker", "label": "Deep Observer", "value": "Thinker", "subtext": "Lost in the beauty of logic." },
+        { "id": "doer", "label": "Active Maker", "value": "Doer", "subtext": "Hands that shape the world." },
+        { "id": "dreamer", "label": "Stardust Traveler", "value": "Dreamer", "subtext": "Walking in waking dreams." },
+        { "id": "helper", "label": "Gentle Guardian", "value": "Helper", "subtext": "A heart that beats for others." }
+      ]
+    },
+    {
+      "id": "intent",
+      "title": "Hidden Wishes",
+      "description": "What silent message do you wish to weave into this creation?",
+      "multiSelect": true,
+      "cards": [
+        { "id": "express", "label": "To Be Heard", "value": "Expressive", "subtext": "Letting the inner voice sing." },
+        { "id": "light", "label": "To Feel Weightless", "value": "Lightness", "subtext": "Dropping the heavy burdens." },
+        { "id": "strong", "label": "To Find Courage", "value": "Strength", "subtext": "Standing tall like a mountain." },
+        { "id": "protect", "label": "To Feel Safe", "value": "Protection", "subtext": "Wrapped in a warm embrace." },
+        { "id": "connect", "label": "To Touch a Heart", "value": "Connection", "subtext": "Bridging the space between us." }
+      ]
+    }
+  ]
+}

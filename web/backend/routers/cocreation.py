@@ -106,7 +106,15 @@ async def websocket_endpoint(websocket: WebSocket, meeting_id: str, user_id: str
     
     try:
         while True:
-            data = await websocket.receive_text()
+            try:
+                data = await websocket.receive_text()
+            except WebSocketDisconnect:
+                # Normal client disconnect
+                break
+            except RuntimeError:
+                # Treat unexpected disconnects / not-connected state the same way
+                break
+
             message = json.loads(data)
             
             # Augment message with user_id
@@ -120,7 +128,7 @@ async def websocket_endpoint(websocket: WebSocket, meeting_id: str, user_id: str
             else:
                 await manager.broadcast(json.dumps(message), meeting_id)
                 
-    except WebSocketDisconnect:
+    except (WebSocketDisconnect, RuntimeError):
         manager.disconnect(websocket, meeting_id, user_id)
         await manager.broadcast_state(meeting_id)  # Broadcast updated participant list
         leave_message = {

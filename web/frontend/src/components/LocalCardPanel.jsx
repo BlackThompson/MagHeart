@@ -3,36 +3,7 @@ import styled from 'styled-components';
 import deck from '../data/cardDeck.json';
 import PlayingCard from './PlayingCard.jsx';
 import CardWheel from './CardWheel.jsx';
-import { Feather, Zap, Sparkles, Fingerprint, HelpCircle, ArrowLeft } from 'lucide-react';
-
-const CARD_METADATA = {
-  'mood-soft': {
-    icon: Feather,
-    subtitle: '温柔时刻',
-    colorTheme: 'emerald'
-  },
-  'mood-intense': {
-    icon: Zap,
-    subtitle: '内心节奏',
-    colorTheme: 'rose'
-  },
-  'energy-check': {
-    icon: Sparkles,
-    subtitle: '能量检测',
-    colorTheme: 'amber'
-  },
-  'identity-lens': {
-    icon: Fingerprint,
-    subtitle: '自我探索',
-    colorTheme: 'violet'
-  },
-  // Defaults for others
-  'default': {
-    icon: HelpCircle,
-    subtitle: 'Card',
-    colorTheme: 'slate'
-  }
-};
+import { ArrowLeft } from 'lucide-react';
 
 /**
  * LocalCardPanel
@@ -63,30 +34,14 @@ export default function LocalCardPanel({ role, sharedContext, onUpdateCardStage 
   const [answer, setAnswer] = useState('');
   const [localPhase, setLocalPhase] = useState('select'); // 'select' | 'draw'
   const [drawPreviewCard, setDrawPreviewCard] = useState(null); // For draw-phase enlarged card
-  const [remoteDrawnIds, setRemoteDrawnIds] = useState(() => {
-    // Browser-persisted drawn state for draw phase
-    if (typeof window === 'undefined') return [];
-    try {
-      const saved = window.localStorage.getItem('magheart-remote-drawn-ids');
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
-  });
 
   // Derived lists
   const playedCards = cardStage.local?.played || [];
   const playedIds = new Set(playedCards.map(p => p.cardId));
   
   // Cards available in the wheel (not yet played)
-  // Enrich with metadata for visual style
   const wheelCards = useMemo(() => {
-    return localCardsFull
-      .filter(c => !playedIds.has(c.id))
-      .map(c => {
-        const meta = CARD_METADATA[c.id] || CARD_METADATA.default;
-        return { ...c, ...meta };
-      });
+    return localCardsFull.filter(c => !playedIds.has(c.id));
   }, [localCardsFull, playedIds]);
 
   // Remote Logic for Phase 2 (Draw)
@@ -94,7 +49,7 @@ export default function LocalCardPanel({ role, sharedContext, onUpdateCardStage 
     () => allCards.filter((c) => c.target === 'remote' || c.target === 'both'),
     [allCards],
   );
-  const availableRemoteCards = remoteCards.filter(c => !remoteDrawnIds.includes(c.id));
+  const availableRemoteCards = remoteCards;
 
   // Handlers
   const handleCardSelect = (card) => {
@@ -143,7 +98,7 @@ export default function LocalCardPanel({ role, sharedContext, onUpdateCardStage 
   };
 
   const handleGoToDraw = () => {
-    // Enter draw phase; keep remoteDrawnIds as browser-local history
+    // Enter draw phase
     setLocalPhase('draw');
     setDrawPreviewCard(null);
   };
@@ -153,7 +108,7 @@ export default function LocalCardPanel({ role, sharedContext, onUpdateCardStage 
     setDrawPreviewCard(null);
   };
 
-  // Remote Draw Handler: click specific card, mark as drawn, and show enlarged preview
+  // Remote Draw Handler: click specific card, just preview it (do not commit draw yet)
   const handleRemoteDraw = (cardFromClick) => {
      if (!availableRemoteCards.length && !cardFromClick) return;
 
@@ -164,39 +119,7 @@ export default function LocalCardPanel({ role, sharedContext, onUpdateCardStage 
        return availableRemoteCards[randomIndex];
      })();
 
-     const now = new Date().toISOString();
-
-     const nextCardStage = {
-       ...cardStage,
-       remote: {
-         drawn: [
-           ...(cardStage.remote?.drawn || []),
-           {
-             cardId: card.id,
-             drawnBy: role,
-             drawnAt: now,
-             faceDown: true,
-             answer: '',
-           },
-         ],
-       },
-     };
-     onUpdateCardStage(nextCardStage);
      setDrawPreviewCard(card);
-
-     // Mark this card as drawn in browser-local state
-     setRemoteDrawnIds((prev) => {
-       if (prev.includes(card.id)) return prev;
-       const next = [...prev, card.id];
-       if (typeof window !== 'undefined') {
-         try {
-           window.localStorage.setItem('magheart-remote-drawn-ids', JSON.stringify(next));
-         } catch {
-           // ignore storage errors
-         }
-       }
-       return next;
-     });
   };
 
   return (
@@ -320,104 +243,175 @@ const Container = styled.div`
   flex-direction: column;
   height: 100%;
   width: 100%;
-  gap: 20px;
+  gap: 0;
   position: relative;
 `;
 
 const SharedContextArea = styled.div`
   flex: 0 0 auto;
-  min-height: 120px;
-  background: rgba(255,255,255,0.5);
-  border-radius: 16px;
-  padding: 16px;
+  min-height: 140px;
+  max-height: 200px;
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 24px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+  border: 1px solid #e2e8f0;
+  margin-bottom: 20px;
+  
+  @media (max-height: 800px) {
+    min-height: 100px;
+    max-height: 150px;
+    padding: 16px;
+  }
 `;
 
 const SectionHeader = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding-bottom: 12px;
+  border-bottom: 2px solid rgba(226, 232, 240, 0.6);
 `;
 
 const HeaderControls = styled.div`
   display: flex;
-  gap: 10px;
+  gap: 12px;
   align-items: center;
 `;
 
 const SectionTitle = styled.h3`
   margin: 0;
-  font-size: 1rem;
-  color: var(--text-color-muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #64748b;
   text-transform: uppercase;
+  letter-spacing: 0.1em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  
+  &::before {
+    content: '';
+    width: 3px;
+    height: 14px;
+    background: #8b5cf6;
+    border-radius: 2px;
+  }
 `;
 
 const ArrowButton = styled.button`
-  background: var(--primary-color);
+  background: #8b5cf6;
   color: white;
   border: none;
-  border-radius: 50%;
-  width: 32px;
-  height: 32px;
+  border-radius: 12px;
+  width: 36px;
+  height: 36px;
   font-size: 1.2rem;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.2s;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(139, 92, 246, 0.2);
   
   &:hover {
-    transform: scale(1.1);
+    transform: translateY(-1px);
+    background: #7c3aed;
+    box-shadow: 0 4px 8px rgba(139, 92, 246, 0.3);
+  }
+  
+  &:active {
+    transform: translateY(0);
   }
 `;
 
 const BackButton = styled(ArrowButton)`
-  background: #94a3b8; /* Slate-400 */
+  background: #94a3b8;
+  box-shadow: 0 2px 4px rgba(100, 116, 139, 0.2);
+  
   &:hover {
     background: #64748b;
+    box-shadow: 0 4px 8px rgba(100, 116, 139, 0.3);
   }
 `;
 
 const SharedList = styled.div`
   display: flex;
-  gap: 12px;
+  gap: 16px;
   overflow-x: auto;
-  padding-bottom: 8px;
+  overflow-y: hidden;
+  padding: 4px 0;
   
-  &::-webkit-scrollbar { height: 6px; }
-  &::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
+  &::-webkit-scrollbar { 
+    height: 8px; 
+  }
+  &::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 4px;
+  }
+  &::-webkit-scrollbar-thumb { 
+    background: #cbd5e1;
+    border-radius: 4px;
+    
+    &:hover {
+      background: #94a3b8;
+    }
+  }
 `;
 
 const EmptyPlaceholder = styled.div`
-  color: var(--text-color-muted);
+  color: #94a3b8;
   font-style: italic;
   font-size: 0.9rem;
+  text-align: center;
+  padding: 20px;
+  opacity: 0.7;
 `;
 
 const SharedItem = styled.div`
-  min-width: 160px;
+  min-width: 180px;
+  max-width: 220px;
   background: white;
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  padding: 10px;
+  border: 2px solid transparent;
+  border-radius: 12px;
+  padding: 14px;
   position: relative;
   display: flex;
   flex-direction: column;
+  gap: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  transition: all 0.3s ease;
+  cursor: default;
   
-  &:hover button { opacity: 1; }
+  &:hover {
+    border-color: rgba(139, 92, 246, 0.3);
+    box-shadow: 0 4px 16px rgba(139, 92, 246, 0.15);
+    transform: translateY(-2px);
+    
+    button { opacity: 1; }
+  }
 `;
 
 const ItemContent = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  font-size: 0.85rem;
+  gap: 6px;
   
-  strong { color: var(--primary-color); }
+  strong { 
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #6366f1;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  
   span { 
-    color: var(--text-color); 
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: #475569;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
@@ -427,35 +421,52 @@ const ItemContent = styled.div`
 
 const DeleteButton = styled.button`
   position: absolute;
-  top: -6px;
-  right: -6px;
-  width: 20px;
-  height: 20px;
+  top: -8px;
+  right: -8px;
+  width: 24px;
+  height: 24px;
   background: #ef4444;
   color: white;
   border-radius: 50%;
-  border: none;
-  font-size: 12px;
+  border: 2px solid white;
+  font-size: 14px;
   cursor: pointer;
   opacity: 0;
-  transition: opacity 0.2s;
+  transition: all 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 2px 4px rgba(239, 68, 68, 0.2);
+  
+  &:hover {
+    transform: scale(1.1);
+    background: #dc2626;
+  }
+  
+  &:active {
+    transform: scale(0.95);
+  }
 `;
 
 const ActionZone = styled.div`
   flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-end;
   position: relative;
+  padding-bottom: 40px;
+  
+  @media (max-height: 800px) {
+    justify-content: center;
+    padding-bottom: 20px;
+  }
 `;
 
 const WheelSection = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
+  width: 100%;
 `;
 
 const SubTitle = styled.h2`
@@ -471,7 +482,7 @@ const DrawSection = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  /* Removed gap to match WheelSection layout */
+  width: 100%;
 `;
 
 const EmptyDeckMessage = styled.div`

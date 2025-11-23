@@ -56,16 +56,29 @@ export default function CardWheel({ cards, onSelect, disabled, selectedCardId })
 
 const WheelContainer = styled.div`
   width: 100%;
-  height: 500px; /* Increased height as per example.html */
+  height: 450px;
   display: flex;
   justify-content: center;
   align-items: flex-end;
-  overflow-x: hidden; /* Prevent clipping but hide horizontal scroll */
+  overflow-x: hidden;
   overflow-y: visible;
-  padding-bottom: 40px;
+  padding-bottom: 20px;
   perspective: 1000px;
   position: relative;
   z-index: 10;
+  
+  @media (max-height: 900px) {
+    height: 400px;
+  }
+  
+  @media (max-height: 800px) {
+    height: 350px;
+    padding-bottom: 10px;
+  }
+  
+  @media (max-height: 700px) {
+    height: 300px;
+  }
 `;
 
 const WheelFan = styled.div`

@@ -5,13 +5,9 @@ import { Check } from 'lucide-react';
 /**
  * PlayingCard
  * 
- * Replicating the visual style from example.html (Hand Card).
- * 
  * Props:
- * - title: string
- * - subtitle: string
- * - prompt: string (The main question, shown at bottom)
- * - icon: React.ComponentType (Lucide icon)
+ * - title: string (optional, small header if provided)
+ * - prompt: string (main content, takes up most space)
  * - colorTheme: 'emerald' | 'rose' | 'amber' | 'violet' (default: 'emerald')
  * - isSelected: boolean
  * - onClick: function
@@ -21,9 +17,7 @@ import { Check } from 'lucide-react';
  */
 export default function PlayingCard({
   title,
-  subtitle,
   prompt,
-  icon: Icon,
   colorTheme = 'emerald',
   isSelected = false,
   onClick,
@@ -44,34 +38,48 @@ export default function PlayingCard({
       $isFaceUp={isFaceUp}
       onClick={!disabled ? onClick : undefined}
     >
-      <CardFace $type="front">
-        {/* Header: Icon + Check */}
-        <CardHeader>
-          <IconWrapper $theme={theme} $isSelected={isSelected}>
-            {Icon && <Icon size={20} />}
-          </IconWrapper>
-          {isSelected && (
-            <CheckBadge>
-              <Check size={12} />
-            </CheckBadge>
-          )}
-        </CardHeader>
+      <CardFace $type="front" $theme={theme} $isFaceUp={isFaceUp}>
+        {/* Decorative corner patterns */}
+        <CornerDecoration $position="top-left" $theme={theme} />
+        <CornerDecoration $position="top-right" $theme={theme} />
+        <CornerDecoration $position="bottom-left" $theme={theme} />
+        <CornerDecoration $position="bottom-right" $theme={theme} />
+        
+        {/* Background decorative elements */}
+        <BackgroundPattern $theme={theme} />
 
-        {/* Body: Title + Subtitle */}
+        {/* Optional small title at top */}
+        {title && (
+          <CardHeader>
+            <CardTitle $isSelected={isSelected} $theme={theme}>{title}</CardTitle>
+            {isSelected && (
+              <CheckBadge>
+                <Check size={14} />
+              </CheckBadge>
+            )}
+          </CardHeader>
+        )}
+
+        {/* Main Content: The Question/Prompt */}
         <CardBody>
-          <CardTitle $isSelected={isSelected}>{title}</CardTitle>
-          <CardSubtitle $isSelected={isSelected}>{subtitle}</CardSubtitle>
+          <QuoteDecoration>"</QuoteDecoration>
+          <PromptText $isSelected={isSelected}>
+            {prompt}
+          </PromptText>
         </CardBody>
-
-        {/* Footer: Question */}
-        <CardFooter>
-          {prompt}
-        </CardFooter>
       </CardFace>
 
-      <CardFace $type="back">
-        <BackPattern />
-        <BackLogo>✨</BackLogo>
+      <CardFace $type="back" $isFaceUp={isFaceUp}>
+        {/* Enhanced back design with multiple layers */}
+        <BackOuterGlow />
+        <BackPatternOuter />
+        <BackPatternMiddle />
+        <BackPatternInner />
+        <BackCenterCircle>
+          <HeartIcon>❤️</HeartIcon>
+          <BackSubtext>MagHeart</BackSubtext>
+        </BackCenterCircle>
+        <BackShimmer />
       </CardFace>
     </CardContainer>
   );
@@ -79,34 +87,39 @@ export default function PlayingCard({
 
 const THEMES = {
   emerald: {
-    bg: '#ecfdf5', // bg-emerald-50
-    text: '#059669', // text-emerald-600
-    border: '#d1fae5', // border-emerald-100
-    ring: '#a7f3d0', // ring-emerald-200
+    bg: '#ecfdf5',
+    text: '#059669',
+    border: '#d1fae5',
+    ring: '#a7f3d0',
+    accent: '#10b981',
   },
   rose: {
-    bg: '#fff1f2', // bg-rose-50
-    text: '#e11d48', // text-rose-600
-    border: '#ffe4e6', // border-rose-100
-    ring: '#fecdd3', // ring-rose-200
+    bg: '#fff1f2',
+    text: '#e11d48',
+    border: '#ffe4e6',
+    ring: '#fecdd3',
+    accent: '#f43f5e',
   },
   amber: {
-    bg: '#fffbeb', // bg-amber-50
-    text: '#d97706', // text-amber-600
-    border: '#fef3c7', // border-amber-100
-    ring: '#fde68a', // ring-amber-200
+    bg: '#fffbeb',
+    text: '#d97706',
+    border: '#fef3c7',
+    ring: '#fde68a',
+    accent: '#f59e0b',
   },
   violet: {
-    bg: '#f5f3ff', // bg-violet-50
-    text: '#7c3aed', // text-violet-600
-    border: '#ede9fe', // border-violet-100
-    ring: '#ddd6fe', // ring-violet-200
+    bg: '#f5f3ff',
+    text: '#7c3aed',
+    border: '#ede9fe',
+    ring: '#ddd6fe',
+    accent: '#8b5cf6',
   },
-  slate: { // Default fallback
+  slate: {
     bg: '#f8fafc',
     text: '#475569',
     border: '#e2e8f0',
     ring: '#cbd5e1',
+    accent: '#64748b',
   }
 };
 
@@ -120,115 +133,260 @@ const CardContainer = styled.div`
   width: ${({ $size }) => SIZES[$size].w};
   height: ${({ $size }) => SIZES[$size].h};
   position: relative;
-  transform-style: preserve-3d;
-  transition: transform 0.6s cubic-bezier(0.4, 0.0, 0.2, 1), box-shadow 0.3s;
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
   cursor: ${({ $disabled }) => ($disabled ? 'default' : 'pointer')};
   background: #ffffff;
-  border-radius: 16px;
+  border-radius: 18px;
+  filter: ${({ $isSelected }) => $isSelected ? 'brightness(1.05)' : 'brightness(1)'};
   
-  /* Selection State: similar to example.html ring-4 */
+  /* Selection State */
   ${({ $isSelected, $theme }) => $isSelected && css`
-    box-shadow: 0 0 0 4px #FDFCF8, 0 0 0 8px ${$theme.bg}, 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    box-shadow: 
+      0 0 0 4px #FDFCF8, 
+      0 0 0 8px ${$theme.bg}, 
+      0 25px 50px -12px rgba(0, 0, 0, 0.25),
+      0 0 30px ${$theme.ring};
     border-color: transparent;
   `}
 
   ${({ $isSelected }) => !$isSelected && css`
-    border: 2px solid #f1f5f9; /* border-slate-100 */
-    box-shadow: -5px 5px 15px rgba(0,0,0,0.05);
+    border: 2px solid #f1f5f9;
+    box-shadow: 
+      -5px 5px 20px rgba(0,0,0,0.08),
+      0 10px 25px rgba(0,0,0,0.04);
     
     &:hover {
-      border-color: #e2e8f0; /* border-slate-200 */
+      border-color: #e2e8f0;
+      box-shadow: 
+        -5px 5px 25px rgba(0,0,0,0.12),
+        0 15px 35px rgba(0,0,0,0.06);
+      transform: translateY(-2px);
     }
   `}
-
-  transform: ${({ $isFaceUp }) => $isFaceUp ? 'rotateY(0deg)' : 'rotateY(180deg)'};
 `;
 
 const CardFace = styled.div`
   position: absolute;
   inset: 0;
-  backface-visibility: hidden;
   display: flex;
   flex-direction: column;
   padding: 20px;
   border-radius: 16px;
-  background: #ffffff;
+  background: ${({ $theme, $type }) =>
+    $type === 'front' && $theme ? $theme.bg : '#ffffff'};
+  overflow: hidden;
+  transition: opacity 0.25s ease;
+
+  ${({ $type, $isFaceUp }) => {
+    const shouldShow = ($type === 'front' && $isFaceUp) || ($type === 'back' && !$isFaceUp);
+    return css`
+      opacity: ${shouldShow ? 1 : 0};
+      pointer-events: ${shouldShow ? 'auto' : 'none'};
+    `;
+  }}
   
   ${({ $type }) => $type === 'back' && css`
-    transform: rotateY(180deg);
-    background: linear-gradient(135deg, #1e293b, #0f172a);
+    background: #1e293b;
     justify-content: center;
     align-items: center;
-    border: 2px solid #334155;
+    border: 3px solid #334155;
   `}
 `;
 
 const CardHeader = styled.div`
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-`;
-
-const IconWrapper = styled.div`
-  padding: 10px;
-  border-radius: 12px;
-  transition: background-color 0.2s;
-  background-color: ${({ $isSelected, $theme }) => $isSelected ? 'rgba(255,255,255,0.6)' : '#f8fafc'};
-  color: ${({ $isSelected, $theme }) => $isSelected ? $theme.text : '#94a3b8'}; /* text-slate-400 */
-  
-  ${({ $isSelected, $theme }) => $isSelected && css`
-    background-color: ${$theme.bg};
-    color: ${$theme.text};
-  `}
-`;
-
-const CheckBadge = styled.div`
-  background-color: #10b981; /* bg-green-500 */
-  color: white;
-  padding: 4px;
-  border-radius: 999px;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  display: flex;
-`;
-
-const CardBody = styled.div`
-  margin-top: 16px;
-  flex: 1;
+  align-items: center;
+  position: relative;
+  z-index: 2;
+  margin-bottom: 16px;
 `;
 
 const CardTitle = styled.h3`
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: ${({ $isSelected }) => $isSelected ? 'inherit' : '#334155'}; /* text-slate-700 */
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: ${({ $theme, $isSelected }) => 
+    $isSelected ? $theme.text : 'rgba(0, 0, 0, 0.5)'
+  };
   margin: 0;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  opacity: ${({ $isSelected }) => $isSelected ? 1 : 0.7};
+  transition: all 0.3s ease;
 `;
 
-const CardSubtitle = styled.p`
-  font-size: 0.8rem;
+const CheckBadge = styled.div`
+  background: #10b981;
+  color: white;
+  padding: 6px;
+  border-radius: 999px;
+  box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2);
+  display: flex;
+  animation: checkPop 0.3s ease-out;
+  
+  @keyframes checkPop {
+    0% { transform: scale(0); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+  }
+`;
+
+const CardBody = styled.div`
+  flex: 1;
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 0;
+`;
+
+const PromptText = styled.p`
+  font-size: 1.1rem;
   font-weight: 500;
-  margin-top: 4px;
-  color: ${({ $isSelected }) => $isSelected ? 'rgba(0,0,0,0.6)' : '#94a3b8'}; /* text-slate-400 */
+  line-height: 1.6;
+  color: ${({ $isSelected }) => $isSelected ? '#1f2937' : '#374151'};
+  margin: 0;
+  text-align: center;
+  font-family: 'Georgia', serif;
+  font-style: italic;
+  position: relative;
+  z-index: 1;
 `;
 
-const CardFooter = styled.div`
-  margin-top: auto;
-  padding-top: 16px;
-  border-top: 1px solid rgba(0,0,0,0.05);
-  font-size: 0.8rem;
-  line-height: 1.5;
-  color: #475569;
-  font-family: serif; /* font-serif */
-  opacity: 0.8;
-`;
-
-const BackPattern = styled.div`
+// Front card decorations
+const CornerDecoration = styled.div`
   position: absolute;
-  inset: 6px;
-  border: 2px dashed rgba(255,255,255,0.2);
+  width: 30px;
+  height: 30px;
+  border-color: ${({ $theme }) => $theme.border};
+  opacity: 0.4;
+  z-index: 1;
+  
+  ${({ $position }) => {
+    switch($position) {
+      case 'top-left':
+        return css`
+          top: 8px;
+          left: 8px;
+          border-top: 2px solid;
+          border-left: 2px solid;
+          border-top-left-radius: 12px;
+        `;
+      case 'top-right':
+        return css`
+          top: 8px;
+          right: 8px;
+          border-top: 2px solid;
+          border-right: 2px solid;
+          border-top-right-radius: 12px;
+        `;
+      case 'bottom-left':
+        return css`
+          bottom: 8px;
+          left: 8px;
+          border-bottom: 2px solid;
+          border-left: 2px solid;
+          border-bottom-left-radius: 12px;
+        `;
+      case 'bottom-right':
+        return css`
+          bottom: 8px;
+          right: 8px;
+          border-bottom: 2px solid;
+          border-right: 2px solid;
+          border-bottom-right-radius: 12px;
+        `;
+      default:
+        return '';
+    }
+  }}
+`;
+
+const BackgroundPattern = styled.div`
+  position: absolute;
+  inset: 0;
+  opacity: 0.03;
+  background-image: radial-gradient(circle at 20% 50%, ${({ $theme }) => $theme.accent} 1px, transparent 1px),
+                    radial-gradient(circle at 80% 80%, ${({ $theme }) => $theme.accent} 1px, transparent 1px);
+  background-size: 40px 40px;
+  z-index: 0;
+  pointer-events: none;
+`;
+
+const QuoteDecoration = styled.span`
+  font-size: 6rem;
+  font-family: Georgia, serif;
+  color: rgba(0, 0, 0, 0.04);
+  position: absolute;
+  left: 20px;
+  top: -10px;
+  line-height: 1;
+  z-index: 0;
+`;
+
+// Back card decorations
+const BackOuterGlow = styled.div`
+  /* Removed glow for cleaner look */
+  display: none;
+`;
+
+const BackPatternOuter = styled.div`
+  position: absolute;
+  inset: 12px;
+  border: 2px solid #475569;
   border-radius: 12px;
   opacity: 0.5;
 `;
 
-const BackLogo = styled.div`
-  font-size: 2rem;
+const BackPatternMiddle = styled.div`
+  position: absolute;
+  inset: 24px;
+  border: 1px dashed rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+`;
+
+const BackPatternInner = styled.div`
+  /* Simplified */
+  display: none;
+`;
+
+const BackCenterCircle = styled.div`
+  position: relative;
+  width: 100px;
+  height: 100px;
+  background: #334155;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 2px solid #475569;
+  z-index: 10;
+`;
+
+const HeartIcon = styled.div`
+  font-size: 2.5rem;
+  animation: heartbeat 1.5s ease-in-out infinite;
+  filter: drop-shadow(0 0 10px rgba(236, 72, 153, 0.8));
+  
+  @keyframes heartbeat {
+    0%, 100% { transform: scale(1); }
+    10%, 30% { transform: scale(1.1); }
+    20%, 40% { transform: scale(0.95); }
+  }
+`;
+
+const BackSubtext = styled.div`
+  font-size: 0.75rem;
+  color: #94a3b8;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+`;
+
+const BackShimmer = styled.div`
+  /* Removed shimmer */
+  display: none;
 `;

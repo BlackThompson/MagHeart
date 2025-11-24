@@ -13,14 +13,15 @@ export default defineConfig({
   ],
   server: {
     proxy: {
-      '/events': { target: 'http://127.0.0.1:8176', changeOrigin: true },
-      '/api': { target: 'http://127.0.0.1:8176', changeOrigin: true },
+      '/events': { target: 'http://10.192.0.116:8176', changeOrigin: true },
+      '/api': { target: 'http://10.192.0.116:8176', changeOrigin: true },
       '/cocreation': {
-        target: 'http://127.0.0.1:8176',
+        target: 'http://10.192.0.116:8176',
         changeOrigin: true,
         ws: true,
       },
-    }
+    },
+    allowedHosts: ['a6904992be18.ngrok-free.app'],
   },
   define: {
     global: 'window',

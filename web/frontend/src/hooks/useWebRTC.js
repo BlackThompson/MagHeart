@@ -1,7 +1,13 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import SimplePeer from 'simple-peer';
 
-export function useWebRTC(messages, sendMessage, userId, isInitiator) {
+export function useWebRTC(
+  messages,
+  sendMessage,
+  userId,
+  isInitiator,
+  signalType = 'webrtc_signal',
+) {
     const [stream, setStream] = useState(null);
     const peerRef = useRef(null);
     const processedIndices = useRef(new Set());
@@ -15,7 +21,7 @@ export function useWebRTC(messages, sendMessage, userId, isInitiator) {
 
         peer.on('signal', (data) => {
             sendMessage({
-                type: 'webrtc_signal',
+                type: signalType,
                 payload: {
                     signal: data,
                     senderId: userId,
@@ -37,13 +43,13 @@ export function useWebRTC(messages, sendMessage, userId, isInitiator) {
         return () => {
             peer.destroy();
         };
-    }, [isInitiator, userId]); // Re-run if initiator changes (shouldn't happen)
+    }, [isInitiator, userId, signalType]); // Re-run if initiator or channel changes
 
     useEffect(() => {
         messages.forEach((msg, index) => {
             if (processedIndices.current.has(index)) return;
 
-            if (msg.type === 'webrtc_signal') {
+            if (msg.type === signalType) {
                 processedIndices.current.add(index);
 
                 const { payload } = msg;
@@ -54,16 +60,16 @@ export function useWebRTC(messages, sendMessage, userId, isInitiator) {
                 peerRef.current?.signal(payload.signal);
             }
         });
-    }, [messages, userId]);
+    }, [messages, userId, signalType]);
 
-    const addStream = (newStream) => {
+    const addStream = useCallback((newStream) => {
         if (newStream) {
             setStream(newStream);
         }
         if (peerRef.current) {
             peerRef.current.addStream(newStream);
         }
-    };
+    }, []);
 
     return {
         stream,

@@ -211,7 +211,7 @@ export default function LocalCardPanel({ role, meetingState, onUpdateCardStage, 
 
   // Remote Draw Handler: select a specific card and broadcast it
   const handleRemoteDraw = (cardFromClick) => {
-    if (!isLocalSide || !cardFromClick) return;
+    if (isLocalSide || !cardFromClick) return;
     if (remoteDrawnIdSet.has(cardFromClick.id)) return;
 
     const now = new Date().toISOString();
@@ -362,12 +362,14 @@ export default function LocalCardPanel({ role, meetingState, onUpdateCardStage, 
             {availableRemoteCards.length > 0 ? (
               <>
                 <DrawInstruction>
-                  Select a face-down card to preview it in the center. Each preview locks the card for the remote pile.
+                  {isLocalSide
+                    ? 'Remote teammate will pick and answer the face-down cards here.'
+                    : 'Pick a face-down card to reveal it, then share your answer.'}
                 </DrawInstruction>
                 <CardWheel
                   cards={availableRemoteCards.map((c) => ({ ...c, isFaceUp: false }))}
                   onSelect={handleRemoteDraw}
-                  disabled={!isLocalSide}
+                  disabled={isLocalSide}
                   selectedCardId={activeRemoteDrawCard?.cardId}
                 />
               </>

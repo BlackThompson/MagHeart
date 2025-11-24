@@ -325,7 +325,7 @@ export default function CoCreationPage() {
 
       <MainContent>
         <div>
-          <PanelTitle>Card Q&A Summary</PanelTitle>
+          <PanelTitle>Context Summary</PanelTitle>
           <ContextGrid>
             {qaItems.length === 0 ? (
               <p>No cards have been played yet.</p>

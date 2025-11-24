@@ -52,14 +52,23 @@ export default function CoCreationPage() {
   }, [stream, isRemote]);
 
   useEffect(() => {
-    if (!isRemote || !remotePreviewRef.current) {
+    if (!isRemote) {
       return;
     }
-    if (stream) {
-      remotePreviewRef.current.srcObject = stream;
-      remotePreviewRef.current.play().catch(() => {});
-    } else {
-      remotePreviewRef.current.srcObject = null;
+    const videoEl = remotePreviewRef.current;
+    console.log('remote preview ref', videoEl);
+    if (stream && videoEl) {
+      console.log('assigning stream to hidden preview');
+      videoEl.srcObject = stream;
+      videoEl.addEventListener('loadeddata', () => {
+        console.log('hidden preview loaded', videoEl.readyState, videoEl.videoWidth, videoEl.videoHeight);
+      });
+      videoEl.play().catch((err) => {
+        console.warn('hidden preview play failed', err);
+      });
+    } else if (videoEl) {
+      console.log('clearing hidden preview stream');
+      videoEl.srcObject = null;
     }
   }, [stream, isRemote]);
 
@@ -77,6 +86,7 @@ export default function CoCreationPage() {
   const isLocalSide = role === 'local' || role === 'host';
 
   const effectiveMeetingState = socketMeetingState || locationMeetingState || {};
+  // console.log('meetingState', effectiveMeetingState);
   const cardStage = effectiveMeetingState.cardStage || createDefaultCardStage();
   const coCreationStatus = useMemo(
     () => ({
@@ -138,9 +148,15 @@ export default function CoCreationPage() {
   );
 
   const captureSnapshot = useCallback(async () => {
-    if (!isRemote || !stream) return null;
+    if (!isRemote || !stream) {
+      console.log('captureSnapshot skipped: no stream or not remote', { isRemote, hasStream: !!stream });
+      return null;
+    }
     const [videoTrack] = stream.getVideoTracks();
-    if (!videoTrack) return null;
+    if (!videoTrack) {
+      console.log('captureSnapshot skipped: no video track');
+      return null;
+    }
     try {
       if (window.ImageCapture) {
         const imageCapture = new ImageCapture(videoTrack);
@@ -159,11 +175,11 @@ export default function CoCreationPage() {
     if (remotePreviewRef.current) {
       const videoEl = remotePreviewRef.current;
       if (videoEl.readyState < 2 || !videoEl.videoWidth) {
-        console.log('Snapshot skipped: video not ready', {
-          readyState: videoEl.readyState,
-          videoWidth: videoEl.videoWidth,
-          videoHeight: videoEl.videoHeight,
-        });
+      console.log('Snapshot skipped: video not ready', {
+        readyState: videoEl.readyState,
+        videoWidth: videoEl.videoWidth,
+        videoHeight: videoEl.videoHeight,
+      });
         return null;
       }
       const canvas = document.createElement('canvas');
@@ -218,8 +234,11 @@ export default function CoCreationPage() {
 
   const handleRemoteComplete = useCallback(async () => {
     if (!stageActive || remoteDone) return;
+    console.log('Remote complete clicked');
     const snapshot = await captureSnapshot();
+    console.log('Capture result', snapshot ? 'success' : 'null');
     const snapshotPath = snapshot ? await uploadSnapshot(snapshot) : null;
+    console.log('Upload result', snapshotPath);
     updateCoCreationStatus({
       remoteDone: true,
       remoteDoneAt: new Date().toISOString(),

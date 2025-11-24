@@ -57,6 +57,9 @@ export function useWebRTC(messages, sendMessage, userId, isInitiator) {
     }, [messages, userId]);
 
     const addStream = (newStream) => {
+        if (newStream) {
+            setStream(newStream);
+        }
         if (peerRef.current) {
             peerRef.current.addStream(newStream);
         }

@@ -1,7 +1,7 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import styled, { keyframes } from 'styled-components';
-import { HeartPulse, Wifi, WifiOff, Play, LogOut, Copy, Check } from 'lucide-react';
+import { HeartPulse, Wifi, WifiOff, Play, LogOut, Check } from 'lucide-react';
 import { useMeetingSession } from '../context/MeetingSessionContext.jsx';
 import NavBar from '../components/NavBar.jsx';
 
@@ -21,8 +21,6 @@ export default function SessionLobbyPage() {
     sendLeaveMeeting,
     sendUpdatePhase,
   } = useMeetingSession();
-
-  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     if (!name || !role) {
@@ -52,12 +50,6 @@ export default function SessionLobbyPage() {
       .sort((a, b) => (a.userId || '').localeCompare(b.userId || ''));
   }, [serverParticipants, name]);
 
-  const handleCopyMeeting = () => {
-    navigator.clipboard.writeText(meetingId);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
   if (!name || !role) {
     return null;
   }
@@ -71,6 +63,7 @@ export default function SessionLobbyPage() {
         subtitle="Gather everyone before starting. Check heart connections and get ready."
         tagLabel={isConnected ? 'Online' : 'Offline'}
         userLabel={`${name} (${role})`}
+        meetingId={meetingId}
       />
 
       <MainContent>

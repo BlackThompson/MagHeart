@@ -42,7 +42,7 @@ export default function FinalShowcasePage() {
 
       <MainContent>
         <Column>
-          <Title>Final LEGO Figure (1)</Title>
+          <Title>Remote</Title>
           <FigureContainer>
             {finalSnapshot ? (
               <FinalImage src={finalSnapshot} alt="Final LEGO result" />
@@ -54,7 +54,7 @@ export default function FinalShowcasePage() {
           </FigureContainer>
         </Column>
         <Column>
-          <Title>Local Assembly Camera</Title>
+          <Title>Co-located</Title>
           <CameraContainer>
             <CameraView />
           </CameraContainer>
@@ -103,29 +103,36 @@ const Title = styled.h2`
 `;
 
 const FigureContainer = styled.div`
-  background-color: var(--surface-color);
+  background-color: #020617;
   border-radius: 24px;
-  padding: 24px;
   border: 1px solid var(--border-color);
   box-shadow: var(--shadow-sm);
-  min-height: 400px;
-  flex: 1;
-  overflow: hidden;
-`;
-
-const FinalImage = styled.img`
+  aspect-ratio: 4 / 3;
   width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-  border-radius: 16px;
-  box-shadow: var(--shadow-md);
-`;
-
-const Placeholder = styled.div`
+  flex: 1;
+  position: relative;
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
+`;
+
+
+const FinalImage = styled.img`
+  width: 100%;
   height: 100%;
+  object-fit: cover;
+  object-position: center;
+`;
+
+const Placeholder = styled.div`
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 24px;
   color: var(--text-color-muted);
   font-weight: 500;
 `;
@@ -133,7 +140,7 @@ const Placeholder = styled.div`
 const CameraContainer = styled.div`
   border-radius: 24px;
   overflow: hidden;
-  min-height: 400px;
+  aspect-ratio: 4 / 3;
   flex: 1;
   box-shadow: var(--shadow-md);
   background-color: #000; /* Camera background usually black */

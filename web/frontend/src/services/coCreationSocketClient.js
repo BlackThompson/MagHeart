@@ -15,7 +15,7 @@ class CoCreationSocketClient {
       participants: {},
       heartRates: {},
       meetingPhase: 'lobby',
-      sharedContext: {},
+      meetingState: {},
       isConnected: false,
     };
 
@@ -72,8 +72,14 @@ class CoCreationSocketClient {
     const { meetingId, userId } = this.config || {};
     if (!meetingId || !userId || this.stopped) return;
 
-    const wsProtocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
-    const wsUrl = `${wsProtocol}://${window.location.host}/cocreation/ws/${meetingId}/${userId}`;
+    const defaultDevOrigin =
+      typeof window !== 'undefined' && window.location.port === '5173'
+        ? 'http://127.0.0.1:8176'
+        : window.location.origin;
+    const backendOrigin = import.meta.env.VITE_BACKEND_ORIGIN || defaultDevOrigin;
+    const wsUrlObj = new URL(`/cocreation/ws/${meetingId}/${userId}`, backendOrigin);
+    wsUrlObj.protocol = wsUrlObj.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsUrl = wsUrlObj.toString();
 
     try {
       this.ws = new WebSocket(wsUrl);
@@ -185,8 +191,8 @@ class CoCreationSocketClient {
       if (payload.phase) {
         this.state.meetingPhase = payload.phase;
       }
-      if (payload.sharedContext) {
-        this.state.sharedContext = payload.sharedContext;
+      if (payload.meetingState) {
+        this.state.meetingState = payload.meetingState;
       }
 
       const newRates = {};
@@ -211,9 +217,9 @@ class CoCreationSocketClient {
         this.state.meetingPhase = message.payload.phase;
       }
       this.state.messages = [...this.state.messages, message];
-    } else if (message.type === 'shared_context_updated') {
-      if (message.payload?.sharedContext) {
-        this.state.sharedContext = message.payload.sharedContext;
+    } else if (message.type === 'meeting_state_updated') {
+      if (message.payload?.meetingState) {
+        this.state.meetingState = message.payload.meetingState;
       }
       this.state.messages = [...this.state.messages, message];
     } else {
@@ -260,12 +266,12 @@ class CoCreationSocketClient {
     });
   }
 
-  sendUpdateSharedContext(updates) {
+  sendUpdateMeetingState(updates) {
     if (!updates || typeof updates !== 'object') return;
     this._sendRaw({
-      type: 'update_shared_context',
+      type: 'update_meeting_state',
       payload: {
-        sharedContext: updates,
+        meetingState: updates,
         timestamp: new Date().toISOString(),
       },
     });

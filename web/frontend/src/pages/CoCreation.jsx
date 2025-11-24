@@ -1,26 +1,30 @@
-import React, { useEffect } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
-import LocalInterpretationPanel from '../components/cocreation/LocalInterpretationPanel';
-import LegoSketchPad from '../components/cocreation/LegoSketchPad';
+
 import { useMeetingSession } from '../context/MeetingSessionContext.jsx';
+import { useWebRTC } from '../hooks/useWebRTC';
 import NavBar from '../components/NavBar.jsx';
-import {
-  Wifi,
-  WifiOff,
-  ArrowRight,
-  ChevronLeft,
-  Sun,
-  Layers,
-  User,
-  Feather,
-  Activity,
-} from 'lucide-react';
+import FloatingNavButton from '../components/FloatingNavButton.jsx';
+import RemoteControlsPanel from '../components/cocreation/RemoteControlsPanel.jsx';
+import VideoPreview from '../components/cocreation/VideoPreview.jsx';
+import CompletionStatusBoard from '../components/cocreation/CompletionStatusBoard.jsx';
+import CelebrationOverlay from '../components/cocreation/CelebrationOverlay.jsx';
+import { createDefaultCardStage } from '../constants/cardStage.js';
+
+const DEFAULT_CO_CREATION_STATUS = {
+  blurEnabled: true,
+  stageActive: false,
+  remoteDone: false,
+  localDone: false,
+  globalCelebration: false,
+  snapshot: null,
+};
 
 export default function CoCreationPage() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { sharedContext } = location.state || {};
+  const { meetingState: locationMeetingState } = location.state || {};
 
   const {
     name,
@@ -29,9 +33,35 @@ export default function CoCreationPage() {
     messages,
     sendMessage,
     sendUpdatePhase,
-    sharedContext: socketSharedContext,
+    sendUpdateMeetingState,
+    meetingState: socketMeetingState,
     isConnected,
   } = useMeetingSession();
+
+  const isRemote = role === 'remote';
+  const { stream, addStream } = useWebRTC(messages, sendMessage, name, isRemote);
+  const videoRef = useRef(null);
+  const remotePreviewRef = useRef(null);
+  const audioContextRef = useRef(null);
+  const prevCompletionRef = useRef({ remoteDone: false, localDone: false });
+  const [celebrationVisible, setCelebrationVisible] = useState(false);
+
+  useEffect(() => {
+    if (!videoRef.current || !stream || isRemote) return;
+    videoRef.current.srcObject = stream;
+  }, [stream, isRemote]);
+
+  useEffect(() => {
+    if (!isRemote || !remotePreviewRef.current) {
+      return;
+    }
+    if (stream) {
+      remotePreviewRef.current.srcObject = stream;
+      remotePreviewRef.current.play().catch(() => {});
+    } else {
+      remotePreviewRef.current.srcObject = null;
+    }
+  }, [stream, isRemote]);
 
   useEffect(() => {
     if (!name || !role) {
@@ -43,16 +73,175 @@ export default function CoCreationPage() {
     return null; // Render nothing while redirecting
   }
 
-  const isRemote = role === 'remote';
   const isHost = role === 'host';
   const isLocalSide = role === 'local' || role === 'host';
 
-  const effectiveSharedContext = socketSharedContext || sharedContext || {};
-  const cardStage = effectiveSharedContext.cardStage || {
-    status: 'in_progress',
-    local: { played: [] },
-    remote: { drawn: [] },
-  };
+  const effectiveMeetingState = socketMeetingState || locationMeetingState || {};
+  const cardStage = effectiveMeetingState.cardStage || createDefaultCardStage();
+  const coCreationStatus = useMemo(
+    () => ({
+      ...DEFAULT_CO_CREATION_STATUS,
+      ...(effectiveMeetingState.coCreationStatus || {}),
+    }),
+    [effectiveMeetingState.coCreationStatus],
+  );
+
+  const { blurEnabled, stageActive, remoteDone, localDone, globalCelebration } = coCreationStatus;
+  const bothComplete = remoteDone && localDone;
+  const canHostAdvance = isHost && bothComplete;
+  const shouldBlurPreview = !isRemote && blurEnabled;
+
+  const updateCoCreationStatus = useCallback(
+    (patch = {}) => {
+      if (!sendUpdateMeetingState) return;
+      const nextStatus = {
+        ...DEFAULT_CO_CREATION_STATUS,
+        ...coCreationStatus,
+        ...patch,
+        updatedAt: new Date().toISOString(),
+        updatedBy: name,
+      };
+      sendUpdateMeetingState({ coCreationStatus: nextStatus });
+    },
+    [coCreationStatus, sendUpdateMeetingState, name],
+  );
+
+  const playChime = useCallback(
+    (notes = [660, 880], duration = 0.18) => {
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        if (!audioContextRef.current) {
+          audioContextRef.current = new AudioCtx();
+        }
+        const ctx = audioContextRef.current;
+        const startTime = ctx.currentTime;
+        notes.forEach((freq, idx) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.value = freq;
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          const offset = idx * duration;
+          gain.gain.setValueAtTime(0.0001, startTime + offset);
+          gain.gain.exponentialRampToValueAtTime(0.25, startTime + offset + 0.01);
+          gain.gain.exponentialRampToValueAtTime(0.001, startTime + offset + duration);
+          osc.start(startTime + offset);
+          osc.stop(startTime + offset + duration);
+  });
+      } catch (err) {
+        console.warn('Unable to play chime', err);
+      }
+    },
+    [],
+  );
+
+  const captureSnapshot = useCallback(async () => {
+    if (!isRemote || !stream) return null;
+    const [videoTrack] = stream.getVideoTracks();
+    if (!videoTrack) return null;
+    try {
+      if (window.ImageCapture) {
+        const imageCapture = new ImageCapture(videoTrack);
+        const bitmap = await imageCapture.grabFrame();
+        const canvas = document.createElement('canvas');
+        canvas.width = bitmap.width;
+        canvas.height = bitmap.height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(bitmap, 0, 0);
+        return canvas.toDataURL('image/png');
+      }
+    } catch (err) {
+      console.warn('ImageCapture failed, falling back to video frame', err);
+    }
+
+    if (remotePreviewRef.current) {
+      const videoEl = remotePreviewRef.current;
+      if (videoEl.readyState < 2 || !videoEl.videoWidth) {
+        console.log('Snapshot skipped: video not ready', {
+          readyState: videoEl.readyState,
+          videoWidth: videoEl.videoWidth,
+          videoHeight: videoEl.videoHeight,
+        });
+        return null;
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = videoEl.videoWidth;
+      canvas.height = videoEl.videoHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
+      return canvas.toDataURL('image/png');
+    }
+    return null;
+  }, [isRemote, stream]);
+
+  const handleStartShare = useCallback(async () => {
+    try {
+      const mediaStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+      addStream(mediaStream);
+      updateCoCreationStatus({ stageActive: true });
+    } catch (err) {
+      console.error('Error sharing screen:', err);
+    }
+  }, [addStream, updateCoCreationStatus]);
+
+  const handleOpenLego = useCallback(() => {
+    window.open('https://www.lego.com/en-us/minifigure-factory', '_blank', 'noopener,noreferrer');
+  }, []);
+
+  const uploadSnapshot = useCallback(
+    async (dataUrl) => {
+      if (!dataUrl) return null;
+      try {
+        const res = await fetch('/cocreation/snapshot', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            meetingId,
+            userId: name,
+            imageData: dataUrl,
+          }),
+        });
+        if (!res.ok) {
+          throw new Error(`Snapshot upload failed: ${res.status}`);
+        }
+        const data = await res.json();
+        return data?.url || null;
+      } catch (err) {
+        console.warn('Failed to save snapshot', err);
+        return null;
+      }
+    },
+    [meetingId, name],
+  );
+
+  const handleRemoteComplete = useCallback(async () => {
+    if (!stageActive || remoteDone) return;
+    const snapshot = await captureSnapshot();
+    const snapshotPath = snapshot ? await uploadSnapshot(snapshot) : null;
+    updateCoCreationStatus({
+      remoteDone: true,
+      remoteDoneAt: new Date().toISOString(),
+      snapshot: snapshot || coCreationStatus.snapshot,
+      snapshotPath: snapshotPath || coCreationStatus.snapshotPath,
+    });
+  }, [stageActive, remoteDone, captureSnapshot, uploadSnapshot, updateCoCreationStatus, coCreationStatus.snapshot, coCreationStatus.snapshotPath]);
+
+  const handleLocalComplete = useCallback(() => {
+    if (!stageActive || localDone || !isLocalSide) return;
+    updateCoCreationStatus({
+      localDone: true,
+      localDoneAt: new Date().toISOString(),
+    });
+  }, [stageActive, localDone, isLocalSide, updateCoCreationStatus]);
+
+  const handleBlurToggle = useCallback(() => {
+    if (!isRemote) return;
+    updateCoCreationStatus({
+      blurEnabled: !blurEnabled,
+    });
+  }, [isRemote, blurEnabled, updateCoCreationStatus]);
 
   const qaItems = [
     ...(cardStage.local?.played || []).map((p) => ({
@@ -69,6 +258,43 @@ export default function CoCreationPage() {
     })),
   ];
 
+  useEffect(() => {
+    const prev = prevCompletionRef.current;
+    if (!prev.remoteDone && remoteDone) {
+      playChime([560, 720]);
+    }
+    if (!prev.localDone && localDone) {
+      playChime([480, 660]);
+    }
+    prevCompletionRef.current = { remoteDone, localDone };
+  }, [remoteDone, localDone, playChime]);
+
+  useEffect(() => {
+    if (bothComplete && !globalCelebration) {
+      updateCoCreationStatus({ globalCelebration: true, blurEnabled: false });
+    }
+  }, [bothComplete, globalCelebration, updateCoCreationStatus]);
+
+  useEffect(() => {
+    if (!coCreationStatus.globalCelebration) return;
+    setCelebrationVisible(true);
+    playChime([660, 880, 990], 0.24);
+    const timer = setTimeout(() => setCelebrationVisible(false), 4500);
+    return () => clearTimeout(timer);
+  }, [coCreationStatus.globalCelebration, playChime]);
+
+  const handleNext = () => {
+    if (!bothComplete) {
+      return;
+    }
+    if (sendUpdatePhase) {
+      sendUpdatePhase('showcase');
+    }
+    navigate(`/showcase?meetingId=${encodeURIComponent(meetingId)}`, {
+      state: { name, role, meetingState: effectiveMeetingState, meetingId },
+    });
+  };
+
   return (
     <PageWrapper>
       <NavBar
@@ -79,82 +305,77 @@ export default function CoCreationPage() {
       />
 
       <MainContent>
-        {isRemote ? (
-          <>
-            <SideColumn>
-              <PanelTitle>LEGO Parts Selection</PanelTitle>
-              <LocalInterpretationPanel sendMessage={sendMessage} />
-            </SideColumn>
-            <MainColumn>
-              <PanelTitle>Figure Preview (1)</PanelTitle>
-              <CanvasContainer>
-                <LegoSketchPad messages={messages} />
-              </CanvasContainer>
-            </MainColumn>
-          </>
-        ) : (
-          <>
-            <SideColumn>
-              <PanelTitle>Card Q&A Summary</PanelTitle>
-              <ContextCard>
-                {qaItems.length === 0 ? (
-                  <ContextRow>
-                    <ContextValue>No cards have been played yet.</ContextValue>
-                  </ContextRow>
-                ) : (
-                  qaItems.map((item, index) => (
-                    <ContextRow key={`${item.side}-${index}`}>
-                      <ContextLabel>
-                        {item.side === 'local' ? <Sun size={16} /> : <Feather size={16} />}
-                        {item.side === 'local' ? 'Local Side' : 'Remote Side'}
-                      </ContextLabel>
-                      <ContextValue>
-                        <strong>{item.title}</strong>
-                      </ContextValue>
-                      {item.prompt && (
-                        <ContextValue>
-                          <em>{item.prompt}</em>
-                        </ContextValue>
-                      )}
-                      {item.answer && <ContextValue>{item.answer}</ContextValue>}
-                    </ContextRow>
-                  ))
-                )}
-              </ContextCard>
-            </SideColumn>
-            <MainColumn>
-              <PanelTitle>Remote LEGO Figure (blurred)</PanelTitle>
-              <BlurredPreview>
-                <LegoSketchPad messages={messages} />
-                <BlurOverlay>
-                  <span>Work in Progress</span>
-                </BlurOverlay>
-              </BlurredPreview>
-            </MainColumn>
-          </>
-        )}
+        <div>
+          <PanelTitle>Card Q&A Summary</PanelTitle>
+          <ContextGrid>
+            {qaItems.length === 0 ? (
+              <p>No cards have been played yet.</p>
+            ) : (
+              qaItems.map((item, index) => (
+                <NoteItem key={`${item.side}-${index}`} $side={item.side}>
+                  <ContextSideTag $side={item.side}>
+                    {item.side === 'local' ? 'Local' : 'Remote'}
+                  </ContextSideTag>
+                  <ContextMain>
+                    <ContextTitle $side={item.side}>{item.title}</ContextTitle>
+                    {item.prompt && <ContextPrompt>{item.prompt}</ContextPrompt>}
+                    {item.answer && <ContextAnswer>{item.answer}</ContextAnswer>}
+                    {!item.answer && item.side === 'remote' && (
+                      <ContextHint>Waiting for remote answer…</ContextHint>
+                    )}
+                  </ContextMain>
+                </NoteItem>
+              ))
+            )}
+          </ContextGrid>
+        </div>
+
+        <MainColumn>
+          <PanelTitle>{isRemote ? 'Remote Controls' : 'Remote Operation View'}</PanelTitle>
+          <CanvasContainer>
+            {isRemote ? (
+              <RemoteControlsPanel
+                onStartShare={handleStartShare}
+                onOpenLego={handleOpenLego}
+                blurEnabled={blurEnabled}
+                onToggleBlur={handleBlurToggle}
+                previewRef={remotePreviewRef}
+              />
+            ) : (
+              <VideoPreview videoRef={videoRef} hasStream={Boolean(stream)} shouldBlur={shouldBlurPreview} />
+            )}
+          </CanvasContainer>
+          {stageActive && (
+            <CompletionStatusBoard
+              remoteDone={remoteDone}
+              localDone={localDone}
+              bothComplete={bothComplete}
+              isRemote={isRemote}
+              isLocalSide={isLocalSide}
+              onRemoteComplete={handleRemoteComplete}
+              onLocalComplete={handleLocalComplete}
+            />
+          )}
+        </MainColumn>
+
         {isHost && (
           <>
-            <FloatingPrevButton type="button" onClick={() => navigate(-1)} aria-label="Previous">
-              <ChevronLeft size={18} />
-            </FloatingPrevButton>
-            <FloatingNextButton
-              type="button"
-              onClick={() => {
-                if (sendUpdatePhase) {
-                  sendUpdatePhase('showcase');
-                }
-                navigate(`/showcase?meetingId=${encodeURIComponent(meetingId)}`, {
-                  state: { name, role, sharedContext, meetingId },
-                });
-              }}
-              aria-label="Next"
-            >
-              <ArrowRight size={18} />
-            </FloatingNextButton>
+            <FloatingNavButton
+              onClick={() => navigate(-1)}
+              direction="prev"
+              aria-label="Previous"
+            />
+            {canHostAdvance && (
+              <FloatingNavButton
+                onClick={handleNext}
+                direction="next"
+                aria-label="Next"
+              />
+            )}
           </>
         )}
       </MainContent>
+      <CelebrationOverlay visible={celebrationVisible} />
     </PageWrapper>
   );
 }
@@ -188,12 +409,6 @@ const MainContent = styled.main`
   position: relative;
 `;
 
-const SideColumn = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-`;
-
 const MainColumn = styled.div`
   display: flex;
   flex-direction: column;
@@ -207,57 +422,95 @@ const PanelTitle = styled.h2`
   color: var(--text-color-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  width: 100%;
 `;
 
-const ContextCard = styled.div`
-  background-color: var(--surface-color);
-  border-radius: 24px;
-  padding: 24px;
-  border: 1px solid var(--border-color);
-  box-shadow: var(--shadow-sm);
+const ContextGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+  padding: 4px;
+  max-height: calc(100vh - 120px);
+  overflow-y: auto;
+`;
+
+const NoteItem = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 12px;
+  background: ${({ $side }) => ($side === 'local' ? '#fffbeb' : '#f0fdfa')}; /* Light yellow vs light cyan/green */
+  border: 1px solid rgba(0,0,0,0.06);
+  border-radius: 2px;
+  border-bottom-right-radius: 20px;
+  padding: 16px;
+  position: relative;
+  box-shadow: 
+    0 4px 6px -1px rgba(0, 0, 0, 0.1), 
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
+  cursor: default;
+  min-height: 140px;
+  
+  &:hover {
+    transform: translateY(-4px) rotate(1deg);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.15);
+    z-index: 10;
+  }
 `;
 
-const ContextRow = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-`;
-
-const ContextLabel = styled.div`
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--text-color-muted);
-  display: flex;
-  align-items: center;
-  gap: 8px;
+const ContextSideTag = styled.span`
+  flex: 0 0 auto;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
+  padding: 4px 8px;
+  border-radius: 999px;
+  color: ${({ $side }) => ($side === 'local' ? '#b45309' : '#047857')};
+  background: ${({ $side }) => ($side === 'local' ? '#fef3c7' : '#d1fae5')};
 `;
 
-const ContextValue = styled.div`
-  font-size: 1rem;
-  color: var(--text-color);
-  padding-left: 24px;
-  font-weight: 500;
-`;
-
-const TagList = styled.div`
+const ContextMain = styled.div`
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  padding-left: 24px;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
 `;
 
-const Tag = styled.span`
-  padding: 6px 12px;
-  border-radius: 8px;
+const ContextTitle = styled.div`
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: ${({ $side }) => ($side === 'local' ? '#92400e' : '#065f46')};
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
+
+const ContextPrompt = styled.div`
+  font-size: 0.8rem;
+  color: #64748b;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+`;
+
+const ContextAnswer = styled.div`
   font-size: 0.85rem;
-  font-weight: 500;
-  border: 1px solid ${({ $muted }) => ($muted ? 'var(--border-color)' : 'transparent')};
-  background-color: ${({ $muted }) => ($muted ? 'transparent' : 'rgba(99, 102, 241, 0.1)')};
-  color: ${({ $muted }) => ($muted ? 'var(--text-color-muted)' : 'var(--primary-color)')};
+  color: #111827;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+`;
+
+const ContextHint = styled.div`
+  font-size: 0.75rem;
+  color: #94a3b8;
 `;
 
 const CanvasContainer = styled.div`
@@ -268,81 +521,6 @@ const CanvasContainer = styled.div`
   overflow: hidden;
   flex: 1;
   min-height: 500px;
-`;
-
-const BlurredPreview = styled(CanvasContainer)`
-  position: relative;
-  
-  > div:first-child {
-    filter: blur(12px);
-    opacity: 0.6;
-    transition: all 0.5s ease;
-  }
-`;
-
-const BlurOverlay = styled.div`
-  position: absolute;
-  inset: 0;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(255,255,255,0.2);
-  
-  span {
-    background: rgba(255,255,255,0.9);
-    padding: 12px 24px;
-    border-radius: 999px;
-    font-weight: 600;
-    color: var(--text-color);
-    box-shadow: var(--shadow-lg);
-    backdrop-filter: blur(4px);
-  }
-`;
-
-const FloatingPrevButton = styled.button`
-  position: fixed;
-  left: 24px;
-  bottom: 24px;
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  border: 1px solid var(--border-color);
-  background-color: var(--surface-color);
-  color: var(--text-color);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: var(--shadow-md);
-  cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-  z-index: 40;
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-lg);
-  }
-`;
-
-const FloatingNextButton = styled.button`
-  position: fixed;
-  right: 24px;
-  bottom: 24px;
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  border: none;
-  background-color: var(--primary-color);
-  color: #ffffff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: var(--shadow-lg);
-  cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
-  z-index: 40;
-
-  &:hover {
-    transform: translateY(-2px);
-    background-color: var(--primary-hover);
-  }
+  align-items: stretch;
 `;

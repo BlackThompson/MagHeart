@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
-import LegoSketchPad from '../components/cocreation/LegoSketchPad';
+
 import CameraView from '../components/cocreation/CameraView';
 import { useMeetingSession } from '../context/MeetingSessionContext.jsx';
 import { Wifi, WifiOff, ChevronLeft } from 'lucide-react';
@@ -15,6 +15,7 @@ export default function FinalShowcasePage() {
     role,
     messages,
     isConnected,
+    meetingState,
   } = useMeetingSession();
 
   useEffect(() => {
@@ -26,6 +27,9 @@ export default function FinalShowcasePage() {
   if (!name || !role) {
     return null;
   }
+
+  const coCreationStatus = meetingState?.coCreationStatus || {};
+  const finalSnapshot = coCreationStatus.snapshotPath || coCreationStatus.snapshot;
 
   return (
     <PageWrapper>
@@ -40,7 +44,13 @@ export default function FinalShowcasePage() {
         <Column>
           <Title>Final LEGO Figure (1)</Title>
           <FigureContainer>
-            <LegoSketchPad messages={messages} />
+            {finalSnapshot ? (
+              <FinalImage src={finalSnapshot} alt="Final LEGO result" />
+            ) : (
+              <Placeholder>
+                Waiting for remote side to finish sharing...
+              </Placeholder>
+            )}
           </FigureContainer>
         </Column>
         <Column>
@@ -101,6 +111,23 @@ const FigureContainer = styled.div`
   min-height: 400px;
   flex: 1;
   overflow: hidden;
+`;
+
+const FinalImage = styled.img`
+  width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 16px;
+  box-shadow: var(--shadow-md);
+`;
+
+const Placeholder = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--text-color-muted);
+  font-weight: 500;
 `;
 
 const CameraContainer = styled.div`

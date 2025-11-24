@@ -70,16 +70,18 @@ export default function PlayingCard({
       </CardFace>
 
       <CardFace $type="back" $isFaceUp={isFaceUp}>
-        {/* Enhanced back design with multiple layers */}
-        <BackOuterGlow />
-        <BackPatternOuter />
-        <BackPatternMiddle />
-        <BackPatternInner />
-        <BackCenterCircle>
-          <HeartIcon>❤️</HeartIcon>
-          <BackSubtext>MagHeart</BackSubtext>
-        </BackCenterCircle>
-        <BackShimmer />
+        <BackContainer>
+          <BackGridPattern />
+          
+          <BackCenterCircle>
+            <LogoImage src="/logo.png" alt="MagHeart Logo" />
+          </BackCenterCircle>
+          
+          <BackTextContainer>
+            <LogoText>MagHeart</LogoText>
+            <UnderlineBar />
+          </BackTextContainer>
+        </BackContainer>
       </CardFace>
     </CardContainer>
   );
@@ -186,10 +188,10 @@ const CardFace = styled.div`
   }}
   
   ${({ $type }) => $type === 'back' && css`
-    background: #1e293b;
+    background: transparent;
     justify-content: center;
     align-items: center;
-    border: 3px solid #334155;
+    padding: 0;
   `}
 `;
 
@@ -326,67 +328,64 @@ const QuoteDecoration = styled.span`
 `;
 
 // Back card decorations
-const BackOuterGlow = styled.div`
-  /* Removed glow for cleaner look */
-  display: none;
-`;
-
-const BackPatternOuter = styled.div`
-  position: absolute;
-  inset: 12px;
-  border: 2px solid #475569;
-  border-radius: 12px;
-  opacity: 0.5;
-`;
-
-const BackPatternMiddle = styled.div`
-  position: absolute;
-  inset: 24px;
-  border: 1px dashed rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
-`;
-
-const BackPatternInner = styled.div`
-  /* Simplified */
-  display: none;
-`;
-
-const BackCenterCircle = styled.div`
+const BackContainer = styled.div`
+  width: 100%;
+  height: 100%;
   position: relative;
-  width: 100px;
-  height: 100px;
-  background: #334155;
-  border-radius: 50%;
+  background: #fdfcf8;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 20px;
+`;
+
+const BackGridPattern = styled.div`
+  position: absolute;
+  inset: 0;
+  background-image: 
+    radial-gradient(circle, #e5e7eb 1px, transparent 1px);
+  background-size: 16px 16px;
+  opacity: 0.4;
+`;
+
+const BackCenterCircle = styled.div`
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  z-index: 2;
+`;
+
+const LogoImage = styled.img`
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+`;
+
+const BackTextContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   gap: 8px;
-  border: 2px solid #475569;
-  z-index: 10;
+  z-index: 2;
 `;
 
-const HeartIcon = styled.div`
-  font-size: 2.5rem;
-  animation: heartbeat 1.5s ease-in-out infinite;
-  filter: drop-shadow(0 0 10px rgba(236, 72, 153, 0.8));
-  
-  @keyframes heartbeat {
-    0%, 100% { transform: scale(1); }
-    10%, 30% { transform: scale(1.1); }
-    20%, 40% { transform: scale(0.95); }
-  }
+const LogoText = styled.span`
+  font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  font-size: 0.85rem;
+  letter-spacing: 0.5px;
+  color: #6b7280;
+  font-weight: 500;
 `;
 
-const BackSubtext = styled.div`
-  font-size: 0.75rem;
-  color: #94a3b8;
-  font-weight: 600;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-`;
-
-const BackShimmer = styled.div`
-  /* Removed shimmer */
-  display: none;
+const UnderlineBar = styled.div`
+  width: 40px;
+  height: 2px;
+  background: #fbbf24;
+  border-radius: 1px;
 `;

@@ -12,6 +12,7 @@ const useCoCreationSocket = ({ meetingId, userId, role, avatarSeed, initialPhase
     participants: {},
     heartRates: {},
     meetingPhase: initialPhase,
+    meetingState: {},
     isConnected: false,
   });
 
@@ -39,7 +40,8 @@ const useCoCreationSocket = ({ meetingId, userId, role, avatarSeed, initialPhase
     sendMessage: (data) => client.sendMessage(data),
     sendLeaveMeeting: (reason) => client.sendLeaveMeeting(reason),
     sendUpdatePhase: (phase) => client.sendUpdatePhase(phase),
-    sendUpdateSharedContext: (updates) => client.sendUpdateSharedContext(updates),
+    sendUpdateMeetingState: (updates) => client.sendUpdateMeetingState(updates),
+    sendEvent: (type, payload) => client.sendMessage({ type, payload }),
   };
 };
 

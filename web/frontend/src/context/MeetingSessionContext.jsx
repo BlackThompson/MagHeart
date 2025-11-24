@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useMemo } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useRef } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import useCoCreationSocket from '../hooks/useCoCreationSocket';
 import { getCoCreationSocketClient } from '../services/coCreationSocketClient';
@@ -40,13 +40,21 @@ export function MeetingSessionProvider() {
     if (!name || !role) {
       navigate('/');
     }
+  }, [name, role, navigate]);
 
+  const skipCleanupOnceRef = useRef(import.meta.env.DEV);
+  useEffect(() => {
     // When leaving the meeting routes entirely, stop the singleton WebSocket client.
     return () => {
+      if (skipCleanupOnceRef.current) {
+        // React StrictMode runs effect cleanup immediately after mount in dev.
+        skipCleanupOnceRef.current = false;
+        return;
+      }
       const client = getCoCreationSocketClient();
       client.stop();
     };
-  }, [name, role, navigate]);
+  }, []);
 
   const socketState = useCoCreationSocket({
     meetingId,

@@ -4,13 +4,15 @@ import styled from 'styled-components';
 import { useMeetingSession } from '../context/MeetingSessionContext.jsx';
 import LocalCardPanel from '../components/LocalCardPanel.jsx';
 import NavBar from '../components/NavBar.jsx';
+import FloatingNavButton from '../components/FloatingNavButton.jsx';
+import { createDefaultCardStage } from '../constants/cardStage.js';
 
 export default function SharedContextSetupPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const { name, role, meetingId: stateMeetingId } = location.state || {};
   const roleLabel = role === 'host' ? 'Host' : role === 'local' ? 'Local' : 'Remote';
-  const { sendUpdatePhase, sendUpdateSharedContext, sharedContext } = useMeetingSession();
+  const { sendUpdatePhase, sendUpdateMeetingState, meetingState, sendEvent, messages } = useMeetingSession();
 
   const queryMeetingId = new URLSearchParams(location.search).get('meetingId');
   const meetingId = stateMeetingId || queryMeetingId || 'default-meeting';
@@ -24,26 +26,42 @@ export default function SharedContextSetupPage() {
 
   const background = 'var(--background-color)';
 
-  // Default structure if sharedContext is empty
-  const cardStage = sharedContext?.cardStage || {
-    status: 'in_progress',
-    local: { played: [] },
-    remote: { drawn: [] },
-  };
+  // Default structure if meetingState is empty
+  const cardStage = meetingState?.cardStage || createDefaultCardStage();
 
   const handleUpdateCardStage = (nextCardStage) => {
-    if (!sendUpdateSharedContext) return;
-    sendUpdateSharedContext({
+    if (!sendUpdateMeetingState) return;
+    sendUpdateMeetingState({
       cardStage: nextCardStage,
     });
   };
 
+  const handleProceedToDraw = () => {
+    if (!sendUpdateMeetingState) return;
+    const remoteState = cardStage.remote || createDefaultCardStage().remote;
+    sendUpdateMeetingState({
+      cardStage: {
+        ...cardStage,
+        subPhase: 'draw',
+        remote: {
+          ...remoteState,
+          drawn: [...(remoteState.drawn || [])],
+          activeDrawId: null,
+        },
+      },
+    });
+  };
+
   const handleNext = () => {
-    if (sendUpdateSharedContext) {
-      sendUpdateSharedContext({
+    if (sendUpdateMeetingState) {
+      sendUpdateMeetingState({
         cardStage: {
           ...cardStage,
           status: 'completed',
+          remote: {
+            ...(cardStage.remote || createDefaultCardStage().remote),
+            activeDrawId: null,
+          },
         },
       });
     }
@@ -55,8 +73,8 @@ export default function SharedContextSetupPage() {
         name,
         role,
         meetingId,
-        sharedContext: {
-          ...(sharedContext || {}),
+        meetingState: {
+          ...(meetingState || {}),
           cardStage: {
             ...cardStage,
             status: 'completed',
@@ -80,22 +98,23 @@ export default function SharedContextSetupPage() {
 
       <MainContent>
         <SinglePanel>
-          <LocalCardPanel
-            role={role}
-            sharedContext={sharedContext}
-            onUpdateCardStage={handleUpdateCardStage}
+         <LocalCardPanel
+           role={role}
+            meetingState={meetingState}
+           onUpdateCardStage={handleUpdateCardStage}
+           onProceedToDraw={handleProceedToDraw}
+           sendEvent={sendEvent}
+            messages={messages}
           />
         </SinglePanel>
 
         {isHost && (
-          <FloatingNextButton
-            type="button"
+          <FloatingNavButton
             onClick={handleNext}
+            direction="next"
             aria-label="Next stage"
             title="Go to Co-creation"
-          >
-            →
-          </FloatingNextButton>
+          />
         )}
       </MainContent>
     </PageWrapper>
@@ -123,30 +142,4 @@ const SinglePanel = styled.div`
   display: flex;
   padding: 16px 0;
   overflow: auto;
-`;
-
-const FloatingNextButton = styled.button`
-  position: fixed;
-  right: 24px;
-  bottom: 24px;
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  border: none;
-  background-color: var(--primary-color);
-  color: #ffffff;
-  font-size: 1.3rem;
-  font-weight: 700;
-  cursor: pointer;
-  box-shadow: var(--shadow-lg);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
-  z-index: 40;
-
-  &:hover {
-    background-color: var(--primary-hover);
-    transform: translateY(-2px);
-  }
 `;

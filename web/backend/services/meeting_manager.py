@@ -20,7 +20,7 @@ class MeetingManager:
     def __init__(self) -> None:
         # meetingId -> userId -> participant dict
         self._participants: Dict[str, Dict[str, Dict[str, Any]]] = {}
-        # meetingId -> metadata (phase, sharedContext, createdAt, etc.)
+        # meetingId -> metadata (phase, meetingState, createdAt, etc.)
         self._meta: Dict[str, Dict[str, Any]] = {}
         # meetingId -> userId -> list[WebSocket]
         self._connections: Dict[str, Dict[str, List[WebSocket]]] = {}
@@ -183,14 +183,11 @@ class MeetingManager:
         await self.broadcast(json.dumps(event), meeting_id)
         await self.broadcast_state(meeting_id)
 
-    async def update_shared_context(
+    async def update_meeting_state(
         self, meeting_id: str, updates: Dict[str, Any], updated_by: str
     ) -> None:
         """
-        Merge updates into the meeting-level shared context and broadcast.
-
-        The shared context represents the canonical selections made in the
-        Shared Context Setup flow (atmosphere, style, etc.) and the current step.
+        Merge updates into the meeting-level shared meeting state and broadcast.
         """
         if not updates:
             return
@@ -198,17 +195,17 @@ class MeetingManager:
         self._ensure_meeting(meeting_id)
         now_str = datetime.now().isoformat()
         meta = self._meta[meeting_id]
-        shared_ctx = meta.setdefault("sharedContext", {})
-        shared_ctx.update(updates)
-        meta["sharedContextUpdatedBy"] = updated_by
-        meta["sharedContextUpdatedAt"] = now_str
+        meeting_state = meta.setdefault("meetingState", {})
+        meeting_state.update(updates)
+        meta["meetingStateUpdatedBy"] = updated_by
+        meta["meetingStateUpdatedAt"] = now_str
         self._touch_meeting(meeting_id)
 
         event = {
-            "type": "shared_context_updated",
+            "type": "meeting_state_updated",
             "payload": {
                 "meetingId": meeting_id,
-                "sharedContext": shared_ctx,
+                "meetingState": meeting_state,
                 "updatedBy": updated_by,
                 "timestamp": now_str,
             },
@@ -277,7 +274,7 @@ class MeetingManager:
             "payload": {
                 "participants": self._participants[meeting_id],
                 "phase": self._current_phase(meeting_id),
-                "sharedContext": self._meta[meeting_id].get("sharedContext"),
+                "meetingState": self._meta[meeting_id].get("meetingState"),
                 "timestamp": datetime.now().isoformat(),
             },
         }

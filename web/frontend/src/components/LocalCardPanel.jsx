@@ -1,9 +1,11 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import styled from 'styled-components';
-import deck from '../data/cardDeck.json';
-import PlayingCard from './PlayingCard.jsx';
+
+import FloatingNavButton from './FloatingNavButton.jsx';
 import CardWheel from './CardWheel.jsx';
-import { ArrowLeft } from 'lucide-react';
+import PlayingCard from './PlayingCard.jsx';
+import deck from '../data/cardDeck.json';
+import { createDefaultCardStage } from '../constants/cardStage.js';
 
 /**
  * LocalCardPanel
@@ -13,7 +15,7 @@ import { ArrowLeft } from 'lucide-react';
  * 2. Shared Context: Display selected/saved cards.
  * 3. Draw: Once ready, proceed to draw phase.
  */
-export default function LocalCardPanel({ role, sharedContext, onUpdateCardStage }) {
+export default function LocalCardPanel({ role, meetingState, onUpdateCardStage, onProceedToDraw, sendEvent, messages }) {
   const isLocalSide = role === 'host' || role === 'local';
 
   const allCards = deck.cards || [];
@@ -22,26 +24,55 @@ export default function LocalCardPanel({ role, sharedContext, onUpdateCardStage 
     [allCards],
   );
 
-  // Derive state from sharedContext
-  const cardStage = sharedContext?.cardStage || {
-    status: 'in_progress',
-    local: { played: [] },
-    remote: { drawn: [] },
-  };
+  // Derive state from meetingState
+  const cardStage = meetingState?.cardStage || createDefaultCardStage();
+  const [phaseOverride, setPhaseOverride] = useState(cardStage.subPhase || 'select');
+  const currentPhase = phaseOverride || 'select';
 
   // Local UI State
-  const [selectedCard, setSelectedCard] = useState(null); // For select-phase answer modal
-  const [answer, setAnswer] = useState('');
-  const [localPhase, setLocalPhase] = useState('select'); // 'select' | 'draw'
-  const [drawPreviewCard, setDrawPreviewCard] = useState(null); // For draw-phase enlarged card
+  const [selectedCard, setSelectedCard] = useState(null); // Host-selected card (for highlight)
+  const [answer, setAnswer] = useState(''); // Remote answer for select phase
+  const [drawAnswer, setDrawAnswer] = useState(''); // Remote answer for draw phase
+
+  // Remote Interaction State
+  const [remoteHoveredCardId, setRemoteHoveredCardId] = useState(null);
+  const [remoteSelectedCard, setRemoteSelectedCard] = useState(null);
+
+  // Listen for interaction events
+  useEffect(() => {
+    if (!messages) return;
+
+    const lastMsg = messages[messages.length - 1];
+    if (!lastMsg) return;
+
+    if (lastMsg.type === 'card_hover') {
+      setRemoteHoveredCardId(lastMsg.payload.cardId);
+    } else if (lastMsg.type === 'card_select_start') {
+      setRemoteSelectedCard(lastMsg.payload.card);
+      setAnswer('');
+    } else if (lastMsg.type === 'card_select_cancel') {
+      setRemoteSelectedCard(null);
+      setSelectedCard(null);
+      setAnswer('');
+    } else if (lastMsg.type === 'card_stage_phase_changed') {
+      const nextPhase = lastMsg.payload?.subPhase;
+      if (nextPhase) {
+        setPhaseOverride(nextPhase);
+      }
+    }
+  }, [messages]);
+
+  useEffect(() => {
+    setPhaseOverride(cardStage.subPhase || 'select');
+  }, [cardStage.subPhase]);
 
   // Derived lists
   const playedCards = cardStage.local?.played || [];
-  const playedIds = new Set(playedCards.map(p => p.cardId));
-  
+  const playedIds = new Set(playedCards.map((p) => p.cardId));
+
   // Cards available in the wheel (not yet played)
   const wheelCards = useMemo(() => {
-    return localCardsFull.filter(c => !playedIds.has(c.id));
+    return localCardsFull.filter((c) => !playedIds.has(c.id));
   }, [localCardsFull, playedIds]);
 
   // Remote Logic for Phase 2 (Draw)
@@ -49,32 +80,82 @@ export default function LocalCardPanel({ role, sharedContext, onUpdateCardStage 
     () => allCards.filter((c) => c.target === 'remote' || c.target === 'both'),
     [allCards],
   );
-  const availableRemoteCards = remoteCards;
+  const remoteState = cardStage.remote || {};
+  const remoteDrawnCards = remoteState.drawn || [];
+  const remoteDrawnIdSet = useMemo(
+    () => new Set(remoteDrawnCards.map((d) => d.cardId)),
+    [remoteDrawnCards],
+  );
+  const availableRemoteCards = useMemo(
+    () => remoteCards.filter((c) => !remoteDrawnIdSet.has(c.id)),
+    [remoteCards, remoteDrawnIdSet],
+  );
+  const activeRemoteDrawId = remoteState.activeDrawId || null;
+  const activeRemoteDrawCard = activeRemoteDrawId
+    ? remoteDrawnCards.find((d) => d.cardId === activeRemoteDrawId)
+    : null;
+  const shouldShowDrawModal = currentPhase === 'draw' && Boolean(activeRemoteDrawCard);
+
+  const sharedEntries = [
+    ...(playedCards || []).map((p) => ({
+      side: 'local',
+      cardId: p.cardId,
+      title: p.title,
+      prompt: p.prompt,
+      answer: p.answer,
+    })),
+    ...(remoteDrawnCards || []).map((d) => ({
+      side: 'remote',
+      cardId: d.cardId,
+      title: d.title || d.cardId,
+      prompt: d.prompt,
+      answer: d.answer,
+    })),
+  ];
 
   // Handlers
   const handleCardSelect = (card) => {
+    // Host selects a card; remote will answer.
+    if (!isLocalSide) return;
     setSelectedCard(card);
     setAnswer('');
+    if (sendEvent) {
+      sendEvent('card_select_start', { card });
+    }
+  };
+
+  const handleCardHover = (cardId) => {
+    if (isLocalSide && sendEvent) {
+      sendEvent('card_hover', { cardId });
+    }
   };
 
   const handleCloseModal = () => {
+    // Remote closes the answer modal without saving.
     setSelectedCard(null);
+    setRemoteSelectedCard(null);
     setAnswer('');
+    if (sendEvent) {
+      sendEvent('card_select_cancel', {});
+    }
   };
 
   const handleSaveCard = () => {
-    if (!isLocalSide || !selectedCard || !answer.trim()) return;
+    // Remote submits answer for the card chosen by host.
+    if (isLocalSide) return;
+    if (!remoteSelectedCard || !answer.trim()) return;
 
     const now = new Date().toISOString();
+    const card = remoteSelectedCard;
     const nextCardStage = {
       ...cardStage,
       local: {
         played: [
           ...(cardStage.local?.played || []),
           {
-            cardId: selectedCard.id,
-            title: selectedCard.title,
-            prompt: selectedCard.prompt,
+            cardId: card.id,
+            title: card.title,
+            prompt: card.prompt,
             answer: answer.trim(),
             playedBy: role,
             playedAt: now,
@@ -84,13 +165,17 @@ export default function LocalCardPanel({ role, sharedContext, onUpdateCardStage 
     };
 
     onUpdateCardStage(nextCardStage);
-    handleCloseModal();
+    setAnswer('');
+    setRemoteSelectedCard(null);
+    if (sendEvent) {
+      sendEvent('card_select_cancel', {});
+    }
   };
 
   const handleDeleteCard = (cardId) => {
     if (!isLocalSide) return;
     const nextPlayed = (cardStage.local?.played || []).filter(p => p.cardId !== cardId);
-    
+
     onUpdateCardStage({
       ...cardStage,
       local: { played: nextPlayed },
@@ -98,28 +183,120 @@ export default function LocalCardPanel({ role, sharedContext, onUpdateCardStage 
   };
 
   const handleGoToDraw = () => {
-    // Enter draw phase
-    setLocalPhase('draw');
-    setDrawPreviewCard(null);
+    if (onProceedToDraw) {
+      onProceedToDraw();
+    }
+    setPhaseOverride('draw');
+    if (isLocalSide && sendEvent) {
+      sendEvent('card_stage_phase_changed', { subPhase: 'draw' });
+    }
   };
 
   const handleBackToSelect = () => {
-    setLocalPhase('select');
-    setDrawPreviewCard(null);
+    if (!isLocalSide) return;
+    const nextCardStage = {
+      ...cardStage,
+      subPhase: 'select',
+      remote: {
+        ...(remoteState || {}),
+        activeDrawId: null,
+      },
+    };
+    onUpdateCardStage(nextCardStage);
+    setPhaseOverride('select');
+    if (sendEvent) {
+      sendEvent('card_stage_phase_changed', { subPhase: 'select' });
+    }
   };
 
-  // Remote Draw Handler: click specific card, just preview it (do not commit draw yet)
+  // Remote Draw Handler: select a specific card and broadcast it
   const handleRemoteDraw = (cardFromClick) => {
-     if (!availableRemoteCards.length && !cardFromClick) return;
+    if (!isLocalSide || !cardFromClick) return;
+    if (remoteDrawnIdSet.has(cardFromClick.id)) return;
 
-     // If user clicked a specific card in the wheel, use that one.
-     // Fallback to random selection only if no card provided.
-     const card = cardFromClick || (() => {
-       const randomIndex = Math.floor(Math.random() * availableRemoteCards.length);
-       return availableRemoteCards[randomIndex];
-     })();
+    const now = new Date().toISOString();
+    const newEntry = {
+      cardId: cardFromClick.id,
+      title: cardFromClick.title,
+      prompt: cardFromClick.prompt,
+      drawnBy: role,
+      drawnAt: now,
+    };
 
-     setDrawPreviewCard(card);
+    const nextCardStage = {
+      ...cardStage,
+      remote: {
+        ...(remoteState || {}),
+        drawn: [...remoteDrawnCards, newEntry],
+        activeDrawId: cardFromClick.id,
+      },
+    };
+
+    onUpdateCardStage(nextCardStage);
+  };
+
+  const handleDismissDrawPreview = () => {
+    if (!isLocalSide || !activeRemoteDrawId) return;
+    const nextCardStage = {
+      ...cardStage,
+      remote: {
+        ...(remoteState || {}),
+        activeDrawId: null,
+      },
+    };
+    onUpdateCardStage(nextCardStage);
+  };
+
+  const handleSaveDrawAnswer = () => {
+    // Remote confirms answer for the currently previewed drawn card.
+    if (isLocalSide) return;
+    if (!activeRemoteDrawCard || !drawAnswer.trim()) return;
+
+    const now = new Date().toISOString();
+    const nextDrawn = remoteDrawnCards.map((d) =>
+      d.cardId === activeRemoteDrawCard.cardId
+        ? {
+            ...d,
+            answer: drawAnswer.trim(),
+            answeredBy: role,
+            answeredAt: now,
+          }
+        : d,
+    );
+
+    const nextCardStage = {
+      ...cardStage,
+      remote: {
+        ...(remoteState || {}),
+        drawn: nextDrawn,
+        activeDrawId: null,
+      },
+    };
+
+    onUpdateCardStage(nextCardStage);
+    setDrawAnswer('');
+  };
+
+  const handleCancelDrawAnswer = () => {
+    // Remote closes draw preview without answering: put card back to deck.
+    if (isLocalSide) return;
+    if (!activeRemoteDrawCard) return;
+
+    const nextDrawn = remoteDrawnCards.filter(
+      (d) => d.cardId !== activeRemoteDrawCard.cardId,
+    );
+
+    const nextCardStage = {
+      ...cardStage,
+      remote: {
+        ...(remoteState || {}),
+        drawn: nextDrawn,
+        activeDrawId: null,
+      },
+    };
+
+    onUpdateCardStage(nextCardStage);
+    setDrawAnswer('');
   };
 
   return (
@@ -129,113 +306,174 @@ export default function LocalCardPanel({ role, sharedContext, onUpdateCardStage 
         <SectionHeader>
           <SectionTitle>Shared Context</SectionTitle>
           <HeaderControls>
-             {localPhase === 'draw' && (
-                <BackButton onClick={handleBackToSelect} title="Back to Selection">
-                   <ArrowLeft size={18} />
-                </BackButton>
-             )}
-             {playedCards.length > 0 && localPhase === 'select' && (
-                <ArrowButton onClick={handleGoToDraw}>→</ArrowButton>
-             )}
+            {currentPhase === 'draw' && (
+              <PhaseBadge>Draw Phase</PhaseBadge>
+            )}
+            {playedCards.length > 0 && currentPhase === 'select' && isLocalSide && (
+              <FloatingNavButton onClick={handleGoToDraw} title="Proceed to Draw Phase" direction="next" position="static" />
+            )}
+            {currentPhase === 'draw' && isLocalSide && (
+              <FloatingNavButton onClick={handleBackToSelect} title="Back to Select Phase" direction="prev" position="static" />
+            )}
           </HeaderControls>
         </SectionHeader>
-        
-        <SharedList>
-          {playedCards.length === 0 && (
-             <EmptyPlaceholder>No cards added yet.</EmptyPlaceholder>
+
+        <ContextGrid>
+          {sharedEntries.length === 0 && (
+            <EmptyPlaceholder>No cards added yet.</EmptyPlaceholder>
           )}
-          {playedCards.map((p) => (
-            <SharedItem key={p.cardId}>
-              <ItemContent>
-                <strong>{p.title}</strong>
-                <span>{p.answer}</span>
-              </ItemContent>
-              {isLocalSide && (
-                <DeleteButton onClick={() => handleDeleteCard(p.cardId)}>×</DeleteButton>
+          {sharedEntries.map((item) => (
+            <NoteItem key={`${item.side}-${item.cardId}`} $side={item.side}>
+              <ContextSideTag $side={item.side}>
+                {item.side === 'local' ? 'Local' : 'Remote'}
+              </ContextSideTag>
+              <ContextMain>
+                <ContextTitle $side={item.side}>{item.title}</ContextTitle>
+                {item.prompt && <ContextPrompt>{item.prompt}</ContextPrompt>}
+                {item.answer && <ContextAnswer>{item.answer}</ContextAnswer>}
+                {!item.answer && item.side === 'remote' && (
+                  <ContextHint>Waiting for remote answer…</ContextHint>
+                )}
+              </ContextMain>
+              {item.side === 'local' && isLocalSide && (
+                <RowDeleteButton onClick={() => handleDeleteCard(item.cardId)}>×</RowDeleteButton>
               )}
-            </SharedItem>
+            </NoteItem>
           ))}
-        </SharedList>
+        </ContextGrid>
       </SharedContextArea>
 
       {/* Bottom Area: Action Zone */}
       <ActionZone>
-        {localPhase === 'select' ? (
+        {currentPhase === 'select' ? (
           <WheelSection>
-             <CardWheel 
-               cards={wheelCards} 
-               selectedCardId={selectedCard?.id}
-               onSelect={handleCardSelect} 
-               disabled={!isLocalSide} 
-             />
+            <CardWheel
+              cards={wheelCards}
+              selectedCardId={selectedCard?.id || remoteSelectedCard?.id}
+              hoveredCardId={remoteHoveredCardId}
+              onSelect={handleCardSelect}
+              onHover={handleCardHover}
+              disabled={!isLocalSide}
+            />
           </WheelSection>
         ) : (
           <DrawSection>
-             {/* Use CardWheel for visual consistency; cards are face down in the wheel */}
-             {availableRemoteCards.length > 0 ? (
-               <CardWheel
-                 cards={availableRemoteCards.map(c => ({ ...c, isFaceUp: false }))}
-                 onSelect={handleRemoteDraw}
-                 disabled={!isLocalSide}
-               />
-             ) : (
-               <EmptyDeckMessage>No more cards to draw.</EmptyDeckMessage>
-             )}
+            {/* Use CardWheel for visual consistency; cards are face down in the wheel */}
+            {availableRemoteCards.length > 0 ? (
+              <>
+                <DrawInstruction>
+                  Select a face-down card to preview it in the center. Each preview locks the card for the remote pile.
+                </DrawInstruction>
+                <CardWheel
+                  cards={availableRemoteCards.map((c) => ({ ...c, isFaceUp: false }))}
+                  onSelect={handleRemoteDraw}
+                  disabled={!isLocalSide}
+                  selectedCardId={activeRemoteDrawCard?.cardId}
+                />
+              </>
+            ) : (
+              <EmptyDeckMessage>No more cards to draw.</EmptyDeckMessage>
+            )}
           </DrawSection>
         )}
       </ActionZone>
 
-      {/* Floating Modal - Select phase (answer input) */}
-      {localPhase === 'select' && selectedCard && (
+      {/* Floating Modal - Select phase (answer input on remote side) */}
+      {currentPhase === 'select' && remoteSelectedCard && !isLocalSide && (
         <ModalOverlay>
           <ModalCardContainer>
-             {/* Render the card "floating" large */}
-             <PlayingCard
-                {...selectedCard}
-                size="large"
-                isFaceUp={true}
-                isSelected={true} // Force selected style for modal
-             />
-             
-             {/* Answer Input Overlay */}
-             <InputOverlay>
-                <StyledTextArea 
-                  placeholder="Write your answer..."
-                  value={answer}
-                  onChange={(e) => setAnswer(e.target.value)}
-                  autoFocus
-                />
-                <ButtonRow>
-                  <CancelButton onClick={handleCloseModal}>✕</CancelButton>
-                  {answer.trim() && (
-                    <SaveButton onClick={handleSaveCard}>✓</SaveButton>
-                  )}
-                </ButtonRow>
-             </InputOverlay>
+            {/* Render the card "floating" large */}
+            <PlayingCard
+              {...remoteSelectedCard}
+              size="large"
+              isFaceUp={true}
+              isSelected={false}
+            />
+
+            {/* Answer Input Overlay */}
+            <InputOverlay>
+              <StyledTextArea
+                placeholder="Write your answer..."
+                value={answer}
+                onChange={(e) => setAnswer(e.target.value)}
+                autoFocus
+              />
+              <ButtonRow>
+                <CancelButton onClick={handleCloseModal}>✕</CancelButton>
+                {answer.trim() && (
+                  <SaveButton onClick={handleSaveCard}>✓</SaveButton>
+                )}
+              </ButtonRow>
+            </InputOverlay>
           </ModalCardContainer>
         </ModalOverlay>
       )}
 
-      {/* Floating Modal - Draw phase (enlarged drawn card, face-up after draw) */}
-      {localPhase === 'draw' && drawPreviewCard && (
+      {/* Floating Modal - Draw phase (remote answers, host sees preview only) */}
+      {shouldShowDrawModal && activeRemoteDrawCard && (
         <ModalOverlay>
           <ModalCardContainer>
             <PlayingCard
-              title={drawPreviewCard.title}
-              prompt={drawPreviewCard.prompt}
+              title={activeRemoteDrawCard.title}
+              prompt={activeRemoteDrawCard.prompt}
+              id={activeRemoteDrawCard.cardId}
               size="large"
               isFaceUp={true}
-              isSelected
+              isSelected={false}
             />
-            <ButtonRow>
-              <CancelButton onClick={() => setDrawPreviewCard(null)}>✕</CancelButton>
-            </ButtonRow>
+            {isLocalSide ? (
+              <PreviewMeta>
+                <PreviewTitle>Remote is answering...</PreviewTitle>
+              </PreviewMeta>
+            ) : (
+              <>
+                <InputOverlay>
+                  <StyledTextArea
+                    placeholder="Write your answer..."
+                    value={drawAnswer}
+                    onChange={(e) => setDrawAnswer(e.target.value)}
+                    autoFocus
+                  />
+                  <ButtonRow>
+                    <CancelButton onClick={handleCancelDrawAnswer}>✕</CancelButton>
+                    {drawAnswer.trim() && (
+                      <SaveButton onClick={handleSaveDrawAnswer}>✓</SaveButton>
+                    )}
+                  </ButtonRow>
+                </InputOverlay>
+              </>
+            )}
+          </ModalCardContainer>
+        </ModalOverlay>
+      )}
+      {/* Host sees that remote is answering the selected card */}
+      {remoteSelectedCard && isLocalSide && (
+        <ModalOverlay>
+          <ModalCardContainer>
+            <PlayingCard
+              {...remoteSelectedCard}
+              size="large"
+              isFaceUp={true}
+              isSelected={false}
+            />
+            <WaitingMessage>
+              Remote is answering...
+            </WaitingMessage>
           </ModalCardContainer>
         </ModalOverlay>
       )}
     </Container>
   );
 }
+
+const WaitingMessage = styled.div`
+  background: white;
+  padding: 12px 24px;
+  border-radius: 999px;
+  font-weight: 600;
+  color: var(--text-color-muted);
+  box-shadow: var(--shadow-md);
+`;
 
 // Styled Components
 const Container = styled.div`
@@ -245,25 +483,24 @@ const Container = styled.div`
   width: 100%;
   gap: 0;
   position: relative;
+  overflow: hidden;
 `;
 
 const SharedContextArea = styled.div`
   flex: 0 0 auto;
-  min-height: 140px;
-  max-height: 200px;
-  background: #ffffff;
-  border-radius: 20px;
+  /* min-height: 140px; */
+  /* max-height removed to allow grid to grow naturally */
+  background: transparent; /* Cleaner look for notes on top */
+  /* border-radius: 20px; */
   padding: 24px;
   display: flex;
   flex-direction: column;
   gap: 16px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.03);
-  border: 1px solid #e2e8f0;
-  margin-bottom: 20px;
+  /* box-shadow: 0 2px 10px rgba(0,0,0,0.03); */
+  /* border: 1px solid #e2e8f0; */
+  margin-bottom: 0; /* Remove margin to let action zone take space */
   
   @media (max-height: 800px) {
-    min-height: 100px;
-    max-height: 150px;
     padding: 16px;
   }
 `;
@@ -297,69 +534,16 @@ const SectionTitle = styled.h3`
     content: '';
     width: 3px;
     height: 14px;
-    background: #8b5cf6;
+    background: #f59e0b; /* Amber */
     border-radius: 2px;
   }
 `;
 
-const ArrowButton = styled.button`
-  background: #8b5cf6;
-  color: white;
-  border: none;
-  border-radius: 12px;
-  width: 36px;
-  height: 36px;
-  font-size: 1.2rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 4px rgba(139, 92, 246, 0.2);
-  
-  &:hover {
-    transform: translateY(-1px);
-    background: #7c3aed;
-    box-shadow: 0 4px 8px rgba(139, 92, 246, 0.3);
-  }
-  
-  &:active {
-    transform: translateY(0);
-  }
-`;
-
-const BackButton = styled(ArrowButton)`
-  background: #94a3b8;
-  box-shadow: 0 2px 4px rgba(100, 116, 139, 0.2);
-  
-  &:hover {
-    background: #64748b;
-    box-shadow: 0 4px 8px rgba(100, 116, 139, 0.3);
-  }
-`;
-
-const SharedList = styled.div`
-  display: flex;
+const ContextGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 16px;
-  overflow-x: auto;
-  overflow-y: hidden;
-  padding: 4px 0;
-  
-  &::-webkit-scrollbar { 
-    height: 8px; 
-  }
-  &::-webkit-scrollbar-track {
-    background: #f1f5f9;
-    border-radius: 4px;
-  }
-  &::-webkit-scrollbar-thumb { 
-    background: #cbd5e1;
-    border-radius: 4px;
-    
-    &:hover {
-      background: #94a3b8;
-    }
-  }
+  padding: 4px;
 `;
 
 const EmptyPlaceholder = styled.div`
@@ -369,60 +553,92 @@ const EmptyPlaceholder = styled.div`
   text-align: center;
   padding: 20px;
   opacity: 0.7;
+  grid-column: 1 / -1;
 `;
 
-const SharedItem = styled.div`
-  min-width: 180px;
-  max-width: 220px;
-  background: white;
-  border: 2px solid transparent;
-  border-radius: 12px;
-  padding: 14px;
-  position: relative;
+const NoteItem = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  gap: 12px;
+  background: ${({ $side }) => ($side === 'local' ? '#fffbeb' : '#f0fdfa')}; /* Light yellow vs light cyan/green */
+  border: 1px solid rgba(0,0,0,0.06);
+  border-radius: 2px;
+  border-bottom-right-radius: 20px;
+  padding: 16px;
+  position: relative;
+  box-shadow: 
+    0 4px 6px -1px rgba(0, 0, 0, 0.1), 
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
   transition: all 0.3s ease;
   cursor: default;
+  min-height: 140px;
   
   &:hover {
-    border-color: rgba(139, 92, 246, 0.3);
-    box-shadow: 0 4px 16px rgba(139, 92, 246, 0.15);
-    transform: translateY(-2px);
-    
-    button { opacity: 1; }
+    transform: translateY(-4px) rotate(1deg);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.15);
+    z-index: 10;
   }
 `;
 
-const ItemContent = styled.div`
+const ContextSideTag = styled.span`
+  flex: 0 0 auto;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 4px 8px;
+  border-radius: 999px;
+  color: ${({ $side }) => ($side === 'local' ? '#b45309' : '#047857')};
+  background: ${({ $side }) => ($side === 'local' ? '#fef3c7' : '#d1fae5')};
+`;
+
+const ContextMain = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  
-  strong { 
-    font-size: 0.8rem;
-    font-weight: 700;
-    color: #6366f1;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-  
-  span { 
-    font-size: 0.9rem;
-    line-height: 1.5;
-    color: #475569;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
+  gap: 4px;
+  min-width: 0;
 `;
 
-const DeleteButton = styled.button`
+const ContextTitle = styled.div`
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: ${({ $side }) => ($side === 'local' ? '#92400e' : '#065f46')};
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
+
+const ContextPrompt = styled.div`
+  font-size: 0.8rem;
+  color: #64748b;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+`;
+
+const ContextAnswer = styled.div`
+  font-size: 0.85rem;
+  color: #111827;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+`;
+
+const ContextHint = styled.div`
+  font-size: 0.75rem;
+  color: #94a3b8;
+`;
+
+const RowDeleteButton = styled.button`
   position: absolute;
-  top: -8px;
-  right: -8px;
+  top: -6px;
+  right: -6px;
   width: 24px;
   height: 24px;
   background: #ef4444;
@@ -452,13 +668,15 @@ const ActionZone = styled.div`
   flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
+  justify-content: flex-end; /* Push content to bottom */
+  align-items: center;
   position: relative;
-  padding-bottom: 40px;
+  min-height: 0;
+  overflow: visible;
+  padding-bottom: 100px; /* Space above the bottom navigation/FAB layer */
   
   @media (max-height: 800px) {
-    justify-content: center;
-    padding-bottom: 20px;
+    padding-bottom: 60px;
   }
 `;
 
@@ -483,6 +701,14 @@ const DrawSection = styled.div`
   flex-direction: column;
   align-items: center;
   width: 100%;
+`;
+
+const DrawInstruction = styled.p`
+  font-size: 0.95rem;
+  color: #475569;
+  text-align: center;
+  max-width: 420px;
+  margin-bottom: 24px;
 `;
 
 const EmptyDeckMessage = styled.div`
@@ -580,5 +806,38 @@ const SaveButton = styled.button`
   justify-content: center;
   box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
   
+  
   &:hover { transform: scale(1.1); }
+`;
+
+const PreviewMeta = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: center;
+  max-width: 320px;
+`;
+
+const PreviewTitle = styled.h4`
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1f2937;
+`;
+
+const PreviewPrompt = styled.p`
+  margin: 0;
+  font-size: 0.95rem;
+  color: #475569;
+  line-height: 1.4;
+`;
+
+const PhaseBadge = styled.div`
+  background: var(--secondary-color);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
 `;

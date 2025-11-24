@@ -7,7 +7,7 @@ import PlayingCard from './PlayingCard.jsx';
  *
  * Replicating the fan layout from example.html.
  */
-export default function CardWheel({ cards, onSelect, disabled, selectedCardId }) {
+export default function CardWheel({ cards, onSelect, disabled, selectedCardId, hoveredCardId, onHover }) {
   if (!cards || cards.length === 0) {
     return <EmptyHint>No cards available.</EmptyHint>;
   }
@@ -19,7 +19,8 @@ export default function CardWheel({ cards, onSelect, disabled, selectedCardId })
       <WheelFan>
         {cards.map((card, index) => {
           const isSelected = selectedCardId === card.id;
-          
+          const isRemoteHovered = hoveredCardId === card.id;
+
           // Fan calculations
           // Rotation: spread 3 degrees per card
           const rotation = (index - (count - 1) / 2) * 3;
@@ -35,11 +36,14 @@ export default function CardWheel({ cards, onSelect, disabled, selectedCardId })
               $rotation={rotation}
               $yOffset={yOffset}
               $isSelected={isSelected}
+              $isRemoteHovered={isRemoteHovered}
               $index={index}
               disabled={disabled}
               onClick={() => !disabled && onSelect && onSelect(card)}
+              onMouseEnter={() => !disabled && onHover && onHover(card.id)}
+              onMouseLeave={() => !disabled && onHover && onHover(null)}
             >
-              <PlayingCard 
+              <PlayingCard
                 {...card} // Pass extended props like icon, colorTheme
                 size="medium"
                 isFaceUp={isFaceUp}
@@ -56,28 +60,35 @@ export default function CardWheel({ cards, onSelect, disabled, selectedCardId })
 
 const WheelContainer = styled.div`
   width: 100%;
-  height: 450px;
+  height: 400px;
   display: flex;
   justify-content: center;
-  align-items: flex-end;
+  align-items: center;
   overflow-x: hidden;
   overflow-y: visible;
-  padding-bottom: 20px;
+  padding: 40px 0;
   perspective: 1000px;
   position: relative;
   z-index: 10;
   
   @media (max-height: 900px) {
-    height: 400px;
+    height: 380px;
+    padding: 30px 0;
   }
   
   @media (max-height: 800px) {
-    height: 350px;
-    padding-bottom: 10px;
+    height: 340px;
+    padding: 20px 0;
   }
   
   @media (max-height: 700px) {
     height: 300px;
+    padding: 15px 0;
+  }
+  
+  @media (min-height: 1000px) {
+    height: 450px;
+    padding: 50px 0;
   }
 `;
 
@@ -102,20 +113,29 @@ const CardSlot = styled.button`
   transition: all 0.5s ease-out;
   
   /* Default State */
-  transform: ${({ $rotation, $yOffset }) => 
+  transform: ${({ $rotation, $yOffset }) =>
     `rotate(${$rotation}deg) translateY(${$yOffset}px)`};
   z-index: ${({ $index }) => $index};
 
   /* Hover State (if not selected) */
   &:hover {
     ${({ disabled, $isSelected }) =>
-      !disabled && !$isSelected &&
-      `
+    !disabled && !$isSelected &&
+    `
       z-index: 40 !important;
       transform: translateY(-40px) rotate(0deg);
       margin: 0 16px; /* space-x-4 equivalent */
     `}
   }
+
+  /* Remote Hover State */
+  ${({ $isRemoteHovered, disabled, $isSelected }) =>
+    $isRemoteHovered && !disabled && !$isSelected && `
+      z-index: 40 !important;
+      transform: translateY(-40px) rotate(0deg);
+      margin: 0 16px;
+      filter: drop-shadow(0 0 8px rgba(99, 102, 241, 0.6)); /* Add glow for remote visibility */
+  `}
 
   /* Selected State */
   ${({ $isSelected }) => $isSelected && `

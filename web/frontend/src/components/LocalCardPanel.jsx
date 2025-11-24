@@ -117,11 +117,11 @@ export default function LocalCardPanel({ role, meetingState, onUpdateCardStage, 
   const handleCardSelect = (card) => {
     // Host selects a card; remote will answer.
     if (!isLocalSide) return;
-    setSelectedCard(card);
-    setAnswer('');
-    if (sendEvent) {
-      sendEvent('card_select_start', { card });
-    }
+      setSelectedCard(card);
+      setAnswer('');
+      if (sendEvent) {
+        sendEvent('card_select_start', { card });
+      }
   };
 
   const handleCardHover = (cardId) => {

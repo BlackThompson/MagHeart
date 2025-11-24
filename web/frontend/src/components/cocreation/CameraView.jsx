@@ -1,14 +1,49 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
+import { Camera } from 'lucide-react';
 
 const CameraView = () => {
+  const videoRef = useRef(null);
+  const [error, setError] = useState(null);
+  const [isActive, setIsActive] = useState(false);
+
+  useEffect(() => {
+    let stream;
+    const startCamera = async () => {
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          await videoRef.current.play();
+          setIsActive(true);
+        }
+      } catch (err) {
+        setError(err.message || 'Unable to access camera');
+      }
+    };
+
+    startCamera();
+
+    return () => {
+      if (stream) {
+        stream.getTracks().forEach((track) => track.stop());
+      }
+    };
+  }, []);
+
   return (
     <Wrapper>
-      <Placeholder>
-        <Icon>📷</Icon>
-        <Text>Live Camera Feed</Text>
-        <Subtext>(Local user's LEGO assembly area)</Subtext>
-      </Placeholder>
+      {isActive ? (
+        <Video ref={videoRef} muted playsInline />
+      ) : (
+        <Placeholder>
+          <Icon>
+            <Camera size={48} />
+          </Icon>
+          <Text>Live Camera Feed</Text>
+          {error ? <Subtext>{error}</Subtext> : <Subtext>Requesting access to camera...</Subtext>}
+        </Placeholder>
+      )}
     </Wrapper>
   );
 };
@@ -30,8 +65,8 @@ const Placeholder = styled.div`
 `;
 
 const Icon = styled.div`
-  font-size: 4em;
   margin-bottom: 16px;
+  color: var(--text-color-muted);
 `;
 
 const Text = styled.p`
@@ -44,6 +79,13 @@ const Subtext = styled.p`
   font-size: 1em;
   color: #aaa;
   margin-top: 8px;
+`;
+
+const Video = styled.video`
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+  object-fit: cover;
 `;
 
 export default CameraView;

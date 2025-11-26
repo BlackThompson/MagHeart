@@ -1,0 +1,24 @@
+version: "3.9"
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: web/backend/Dockerfile
+    env_file:
+      - web/backend/.env
+      - web/backend/.env.local
+    environment:
+      MAGHEART_DATA_DIR: /data
+      ARDUINO_ENABLED: "false"
+    volumes:
+      - ./data:/data
+    ports:
+      - "8000:8000"
+
+  frontend:
+    build:
+      context: .
+      dockerfile: web/frontend/Dockerfile
+    ports:
+      - "8080:80"

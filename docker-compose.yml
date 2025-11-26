@@ -14,11 +14,11 @@ services:
     volumes:
       - ./data:/data
     ports:
-      - "8176:8176"
+      - "127.0.0.1:8176:8176"
 
   frontend:
     build:
       context: .
       dockerfile: web/frontend/Dockerfile
     ports:
-      - "8080:80"
+      - "127.0.0.1:6176:80"

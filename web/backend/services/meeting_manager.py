@@ -6,39 +6,25 @@ from typing import Any, Dict, List, Optional
 
 from fastapi import WebSocket, WebSocketDisconnect
 
+from ..storage.meeting_repository import repository as meeting_repository
+
 
 class MeetingManager:
     """
-    In-memory meeting manager.
-
-    Responsibilities:
-    - Maintain a canonical table of meetings and participants.
-    - Track WebSocket connections per meeting/user as transport only.
-    - Provide helpers for join / heartbeat / leave / phase updates.
+    Meeting/session manager that keeps WebSocket connections in-memory while
+    persisting the canonical meeting state to SQLite via MeetingRepository.
     """
 
-    def __init__(self) -> None:
-        # meetingId -> userId -> participant dict
-        self._participants: Dict[str, Dict[str, Dict[str, Any]]] = {}
-        # meetingId -> metadata (phase, meetingState, createdAt, etc.)
-        self._meta: Dict[str, Dict[str, Any]] = {}
+    def __init__(self, repo=meeting_repository) -> None:
         # meetingId -> userId -> list[WebSocket]
         self._connections: Dict[str, Dict[str, List[WebSocket]]] = {}
+        self.repo = repo
 
     # ---- Internal helpers -------------------------------------------------
 
-    def _ensure_meeting(self, meeting_id: str) -> None:
-        if meeting_id not in self._participants:
-            self._participants[meeting_id] = {}
-        if meeting_id not in self._meta:
-            now_str = datetime.now().isoformat()
-            self._meta[meeting_id] = {"phase": "lobby", "createdAt": now_str, "updatedAt": now_str}
+    def _ensure_connection_bucket(self, meeting_id: str) -> None:
         if meeting_id not in self._connections:
             self._connections[meeting_id] = {}
-
-    def _touch_meeting(self, meeting_id: str) -> None:
-        if meeting_id in self._meta:
-            self._meta[meeting_id]["updatedAt"] = datetime.now().isoformat()
 
     # ---- Connection management --------------------------------------------
 
@@ -48,9 +34,9 @@ class MeetingManager:
         This does NOT implicitly join the meeting – client must send join_meeting.
         """
         await websocket.accept()
-        self._ensure_meeting(meeting_id)
+        self.repo.ensure_meeting(meeting_id)
+        self._ensure_connection_bucket(meeting_id)
         self._connections[meeting_id].setdefault(user_id, []).append(websocket)
-        self._touch_meeting(meeting_id)
 
     def unregister_connection(self, meeting_id: str, user_id: str, websocket: WebSocket) -> None:
         """
@@ -79,26 +65,9 @@ class MeetingManager:
         """
         Create or update a participant entry when a client joins the meeting.
         """
-        self._ensure_meeting(meeting_id)
-        now_str = datetime.now().isoformat()
-
-        participant = self._participants[meeting_id].get(user_id)
-        if not participant:
-            participant = {
-                "meetingId": meeting_id,
-                "userId": user_id,
-                "joinedAt": now_str,
-            }
-            self._participants[meeting_id][user_id] = participant
-
-        participant.update(
-            {
-                "status": "online",
-                "lastHeartbeat": now_str,
-            }
-        )
-        participant.update(payload or {})
-        self._touch_meeting(meeting_id)
+        payload = payload or {}
+        payload["status"] = "online"
+        self.repo.upsert_participant(meeting_id, user_id, payload)
         await self.broadcast_state(meeting_id)
 
     async def heartbeat(
@@ -107,46 +76,28 @@ class MeetingManager:
         """
         Lightweight presence ping: ensure entry exists and bump lastHeartbeat/status.
         """
-        self._ensure_meeting(meeting_id)
-        now_str = datetime.now().isoformat()
-
-        participant = self._participants[meeting_id].get(user_id)
-        if not participant:
-            participant = {
-                "meetingId": meeting_id,
-                "userId": user_id,
-                "joinedAt": now_str,
-            }
-            self._participants[meeting_id][user_id] = participant
-
-        participant["status"] = "online"
-        participant["lastHeartbeat"] = now_str
-        if payload:
-            participant.update(payload)
-
-        self._touch_meeting(meeting_id)
+        payload = payload or {}
+        existing = self.repo.get_participant(meeting_id, user_id)
+        if existing:
+            self.repo.update_participant_status(meeting_id, user_id, "online", payload)
+        else:
+            payload["status"] = "online"
+            self.repo.upsert_participant(meeting_id, user_id, payload)
         await self.broadcast_state(meeting_id)
 
     async def leave_participant(self, meeting_id: str, user_id: str) -> None:
         """
         Explicit leave: remove participant from the meeting table.
         """
-        if meeting_id in self._participants and user_id in self._participants[meeting_id]:
-            del self._participants[meeting_id][user_id]
-            if not self._participants[meeting_id]:
-                del self._participants[meeting_id]
-                self._meta.pop(meeting_id, None)
-                self._connections.pop(meeting_id, None)
-        self._touch_meeting(meeting_id)
+        self.repo.remove_participant(meeting_id, user_id)
         await self.broadcast_state(meeting_id)
 
     async def update_phase(self, meeting_id: str, phase: str, updated_by: str) -> None:
         """
         Update global meeting phase and broadcast (host-only).
         """
-        self._ensure_meeting(meeting_id)
-
-        participant = self._participants.get(meeting_id, {}).get(updated_by)
+        self.repo.ensure_meeting(meeting_id)
+        participant = self.repo.get_participant(meeting_id, updated_by)
         role = participant.get("role") if participant else None
         if role != "host":
             now_str = datetime.now().isoformat()
@@ -165,12 +116,7 @@ class MeetingManager:
             return
 
         now_str = datetime.now().isoformat()
-        meta = self._meta[meeting_id]
-        meta["phase"] = phase
-        meta["phaseUpdatedBy"] = updated_by
-        meta["phaseUpdatedAt"] = now_str
-        self._touch_meeting(meeting_id)
-
+        self.repo.update_phase(meeting_id, phase, updated_by)
         event = {
             "type": "phase_changed",
             "payload": {
@@ -192,14 +138,9 @@ class MeetingManager:
         if not updates:
             return
 
-        self._ensure_meeting(meeting_id)
+        self.repo.ensure_meeting(meeting_id)
+        meeting_state = self.repo.update_meeting_state(meeting_id, updates, updated_by)
         now_str = datetime.now().isoformat()
-        meta = self._meta[meeting_id]
-        meeting_state = meta.setdefault("meetingState", {})
-        meeting_state.update(updates)
-        meta["meetingStateUpdatedBy"] = updated_by
-        meta["meetingStateUpdatedAt"] = now_str
-        self._touch_meeting(meeting_id)
 
         event = {
             "type": "meeting_state_updated",
@@ -223,58 +164,42 @@ class MeetingManager:
         Mark users as offline if they have not been seen recently, and
         optionally remove long-gone users from the meeting state.
         """
-        if meeting_id not in self._participants:
+        meeting = self.repo.get_meeting(meeting_id)
+        if not meeting:
             return
 
         now = datetime.now()
         offline_threshold = now - timedelta(seconds=offline_after_seconds)
         hard_remove_threshold = now - timedelta(seconds=hard_remove_after_seconds)
 
-        stale_to_remove: List[str] = []
-
-        for user_id, entry in self._participants[meeting_id].items():
-            try:
-                last_seen_str = entry.get("lastHeartbeat") or entry.get("lastSeen")
-                last_seen = datetime.fromisoformat(last_seen_str) if last_seen_str else datetime.fromtimestamp(0)
-            except Exception:
-                last_seen = datetime.fromtimestamp(0)
-
-            if last_seen < hard_remove_threshold:
-                stale_to_remove.append(user_id)
-            elif last_seen < offline_threshold:
-                entry["status"] = "offline"
-
-        for user_id in stale_to_remove:
-            del self._participants[meeting_id][user_id]
-
-        if meeting_id in self._participants and not self._participants[meeting_id]:
-            del self._participants[meeting_id]
-            self._meta.pop(meeting_id, None)
-            self._connections.pop(meeting_id, None)
-
-        self._touch_meeting(meeting_id)
+        self.repo.cleanup_participants(meeting_id, offline_threshold, hard_remove_threshold)
         await self.broadcast_state(meeting_id)
 
     # ---- Broadcast helpers ------------------------------------------------
-
-    def _current_phase(self, meeting_id: str) -> str:
-        if meeting_id not in self._meta:
-            return "lobby"
-        return self._meta[meeting_id].get("phase") or "lobby"
 
     async def broadcast_state(self, meeting_id: str) -> None:
         """
         Broadcast the full participants/phase snapshot to everyone in the meeting.
         """
-        if meeting_id not in self._participants or meeting_id not in self._connections:
+        if meeting_id not in self._connections:
             return
+
+        meeting = self.repo.get_meeting(meeting_id)
+        if not meeting:
+            return
+
+        participants = {}
+        for participant in self.repo.list_participants(meeting_id):
+            serialized = dict(participant)
+            serialized.pop("payload", None)
+            participants[participant["userId"]] = serialized
 
         state_message = {
             "type": "participants_state",
             "payload": {
-                "participants": self._participants[meeting_id],
-                "phase": self._current_phase(meeting_id),
-                "meetingState": self._meta[meeting_id].get("meetingState"),
+                "participants": participants,
+                "phase": meeting.get("phase", "lobby"),
+                "meetingState": meeting.get("meetingState"),
                 "timestamp": datetime.now().isoformat(),
             },
         }

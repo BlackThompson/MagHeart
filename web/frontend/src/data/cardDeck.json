@@ -32,28 +32,28 @@
       "id": 5,
       "target": "local",
       "title": "Natural Style",
-      "prompt": "What style feels most natural for you lately? (polished / casual / easygoing / functional)",
+      "prompt": "What style feels most natural for you lately? (e.g. polished / casual / easygoing / functional)",
       "inputType": "text"
     },
     {
       "id": 6,
       "target": "local",
       "title": "Minifigure Style Direction",
-      "prompt": "If this minifigure had one overall style, which direction fits today? (professional / sporty / sci-fi / adventurous)",
+      "prompt": "If this minifigure had one overall style, which direction fits you? (e.g. professional / sporty / sci-fi / adventurous)",
       "inputType": "text"
     },
     {
       "id": 7,
       "target": "local",
       "title": "First Impression",
-      "prompt": "What first impression do you want this figure to give? (steady, bright, energetic, neutral, gentle…)",
+      "prompt": "What first impression do you want this figure to give? (e.g. steady, bright, energetic, neutral, gentle…)",
       "inputType": "text"
     },
     {
       "id": 8,
       "target": "local",
       "title": "Material Metaphor",
-      "prompt": "Pick one material that reflects you today — which one resonates? (fabric / metal / wood / cotton-soft / etc.)",
+      "prompt": "Pick one material that reflects you today — which one resonates? (e.g. fabric / metal / wood / cotton-soft / etc.)",
       "inputType": "text"
     },
     {

@@ -3,6 +3,9 @@ import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import { User, Activity, RefreshCw } from 'lucide-react';
 
+const SESSION_SEED_KEY = 'magheart_identity_seed';
+const generateSeed = () => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+
 export default function IdentitySetup() {
   const [name, setName] = useState('');
   const [role, setRole] = useState(null); // 'local' or 'remote'
@@ -12,24 +15,35 @@ export default function IdentitySetup() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const savedAvatar = window.localStorage.getItem('magheart_avatar_seed');
-    if (savedAvatar) {
-      setAvatarSeed(savedAvatar);
-    } else {
-      setAvatarSeed(Math.random().toString(36).slice(2));
+    const existing =
+      typeof window !== 'undefined' ? window.sessionStorage.getItem(SESSION_SEED_KEY) : null;
+    if (existing) {
+      setAvatarSeed(existing);
+      return;
     }
+    const seed = generateSeed();
+    if (typeof window !== 'undefined') {
+      window.sessionStorage.setItem(SESSION_SEED_KEY, seed);
+    }
+    setAvatarSeed(seed);
   }, []);
 
   const randomizeAvatar = () => {
-    setAvatarSeed(Math.random().toString(36).slice(2));
+    const seed = generateSeed();
+    if (typeof window !== 'undefined') {
+      window.sessionStorage.setItem(SESSION_SEED_KEY, seed);
+    }
+    setAvatarSeed(seed);
   };
 
   const handleCreateMeeting = () => {
     if (!name || !avatarSeed) return;
 
     const generatedMeetingId = Math.random().toString(36).slice(2, 10);
-    const finalSeed = avatarSeed.trim() || Math.random().toString(36).slice(2);
-    window.localStorage.setItem('magheart_avatar_seed', finalSeed);
+    const finalSeed = avatarSeed.trim() || generateSeed();
+    if (typeof window !== 'undefined') {
+      window.sessionStorage.setItem(SESSION_SEED_KEY, finalSeed);
+    }
 
     navigate(`/lobby?meetingId=${encodeURIComponent(generatedMeetingId)}`, {
       state: { name, role: 'host', meetingId: generatedMeetingId, avatarSeed: finalSeed },
@@ -39,8 +53,10 @@ export default function IdentitySetup() {
   const handleJoinMeeting = () => {
     if (name && role && meetingId && avatarSeed) {
       const trimmedMeetingId = meetingId.trim();
-      const finalSeed = avatarSeed.trim() || Math.random().toString(36).slice(2);
-      window.localStorage.setItem('magheart_avatar_seed', finalSeed);
+      const finalSeed = avatarSeed.trim() || generateSeed();
+      if (typeof window !== 'undefined') {
+        window.sessionStorage.setItem(SESSION_SEED_KEY, finalSeed);
+      }
       navigate(`/lobby?meetingId=${encodeURIComponent(trimmedMeetingId)}`, {
         state: { name, role, meetingId: trimmedMeetingId, avatarSeed: finalSeed },
       });
@@ -83,7 +99,7 @@ export default function IdentitySetup() {
                   <AvatarImg
                     src={`https://api.dicebear.com/9.x/pixel-art/svg?seed=${encodeURIComponent(
                       avatarSeed,
-                    )}`}
+                    )}&backgroundColor=b6e3f4,ffd5dc,c0aede,d1d4f9&backgroundType=gradientLinear`}
                     alt="Avatar preview"
                   />
                 )}

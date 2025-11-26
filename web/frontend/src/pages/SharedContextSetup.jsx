@@ -86,6 +86,7 @@ export default function SharedContextSetupPage() {
 
   const subtitle =
     "Let the cards surface today's mood, identity, and hidden wishes. Local side chooses cards and builds the shared context.";
+  const isDrawPhase = (cardStage?.subPhase || 'select') === 'draw';
 
   return (
     <PageWrapper $background={background}>
@@ -107,8 +108,7 @@ export default function SharedContextSetupPage() {
             messages={messages}
           />
         </SinglePanel>
-
-        {isHost && (
+        {isHost && isDrawPhase && (
           <FloatingNavButton
             onClick={handleNext}
             direction="next"
@@ -116,6 +116,7 @@ export default function SharedContextSetupPage() {
             title="Go to Co-creation"
           />
         )}
+
       </MainContent>
     </PageWrapper>
   );

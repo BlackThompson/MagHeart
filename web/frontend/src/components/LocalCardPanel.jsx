@@ -196,13 +196,25 @@ export default function LocalCardPanel({ role, meetingState, onUpdateCardStage, 
     }
   };
 
-  const handleDeleteCard = (cardId) => {
-    if (!isLocalSide) return;
-    const nextPlayed = (cardStage.local?.played || []).filter(p => p.cardId !== cardId);
+  const handleDeleteContextEntry = (entry) => {
+    if (!isLocalSide || !entry) return;
+    if (entry.side === 'local') {
+      const nextPlayed = (cardStage.local?.played || []).filter((p) => p.cardId !== entry.cardId);
+      onUpdateCardStage({
+        ...cardStage,
+        local: { played: nextPlayed },
+      });
+      return;
+    }
 
+    const nextDrawn = (remoteState.drawn || []).filter((d) => d.cardId !== entry.cardId);
     onUpdateCardStage({
       ...cardStage,
-      local: { played: nextPlayed },
+      remote: {
+        ...remoteState,
+        drawn: nextDrawn,
+        activeDrawId: remoteState.activeDrawId === entry.cardId ? null : remoteState.activeDrawId,
+      },
     });
   };
 
@@ -368,8 +380,8 @@ export default function LocalCardPanel({ role, meetingState, onUpdateCardStage, 
                   <ContextHint>Waiting for remote answer…</ContextHint>
                 )}
               </ContextMain>
-              {item.side === 'local' && isLocalSide && (
-                <RowDeleteButton onClick={() => handleDeleteCard(item.cardId)}>×</RowDeleteButton>
+              {isLocalSide && (
+                <RowDeleteButton type="button" onClick={() => handleDeleteContextEntry(item)}>×</RowDeleteButton>
               )}
             </NoteItem>
           ))}
@@ -435,9 +447,6 @@ export default function LocalCardPanel({ role, meetingState, onUpdateCardStage, 
                   autoFocus
                 />
               )}
-              {!remoteSelectionRequiresAnswer && (
-                <NoInputHint>No text needed — tap ✓ when you want to keep this card.</NoInputHint>
-              )}
               <ButtonRow>
                 <CancelButton onClick={handleCloseModal}>✕</CancelButton>
                 {(!remoteSelectionRequiresAnswer || answer.trim()) && (
@@ -478,9 +487,6 @@ export default function LocalCardPanel({ role, meetingState, onUpdateCardStage, 
                       autoFocus
                     />
                   )}
-                  {!activeRemoteDrawRequiresAnswer && (
-                    <NoInputHint>No text needed — tap ✓ to keep this draw.</NoInputHint>
-                  )}
                   <ButtonRow>
                     <CancelButton onClick={handleCancelDrawAnswer}>✕</CancelButton>
                     {(!activeRemoteDrawRequiresAnswer || drawAnswer.trim()) && (
@@ -506,6 +512,9 @@ export default function LocalCardPanel({ role, meetingState, onUpdateCardStage, 
             <WaitingMessage>
               {remoteSelectionRequiresAnswer ? 'Remote is answering...' : 'Remote is viewing the card...'}
             </WaitingMessage>
+            <ButtonRow>
+              <CancelButton onClick={handleCloseModal} title="Cancel this card">✕</CancelButton>
+            </ButtonRow>
           </ModalCardContainer>
         </ModalOverlay>
       )}
@@ -624,6 +633,10 @@ const NoteItem = styled.div`
     transform: translateY(-4px) rotate(1deg);
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.15);
     z-index: 10;
+    
+    .context-delete-btn {
+      opacity: 1;
+    }
   }
 `;
 
@@ -682,7 +695,7 @@ const ContextHint = styled.div`
   color: #94a3b8;
 `;
 
-const RowDeleteButton = styled.button`
+const RowDeleteButton = styled.button.attrs({ className: 'context-delete-btn', type: 'button' })`
   position: absolute;
   top: -6px;
   right: -6px;

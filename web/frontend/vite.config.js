@@ -13,10 +13,10 @@ export default defineConfig({
   ],
   server: {
     proxy: {
-      '/events': { target: 'http://10.192.0.116:8176', changeOrigin: true },
-      '/api': { target: 'http://10.192.0.116:8176', changeOrigin: true },
+      '/events': { target: 'http://10.192.4.59:8176', changeOrigin: true },
+      '/api': { target: 'http://10.192.4.59:8176', changeOrigin: true },
       '/cocreation': {
-        target: 'http://10.192.0.116:8176',
+        target: 'http://10.192.4.59:8176',
         changeOrigin: true,
         ws: true,
       },

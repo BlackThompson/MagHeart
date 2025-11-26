@@ -1,10 +1,10 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useCallback, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 
 import CameraView from '../components/cocreation/CameraView';
 import { useMeetingSession } from '../context/MeetingSessionContext.jsx';
-import { Wifi, WifiOff, ChevronLeft } from 'lucide-react';
+import { Wifi, WifiOff, CheckCircle2 } from 'lucide-react';
 import NavBar from '../components/NavBar.jsx';
 
 export default function FinalShowcasePage() {
@@ -13,7 +13,8 @@ export default function FinalShowcasePage() {
   const {
     name,
     role,
-    messages,
+    meetingId,
+    sendUpdatePhase,
     isConnected,
     meetingState,
   } = useMeetingSession();
@@ -30,6 +31,31 @@ export default function FinalShowcasePage() {
 
   const coCreationStatus = meetingState?.coCreationStatus || {};
   const finalSnapshot = coCreationStatus.snapshotPath || coCreationStatus.snapshot;
+
+  const handleBack = useCallback(() => {
+    if (role === 'host' && sendUpdatePhase) {
+      sendUpdatePhase('cocreation');
+    }
+    navigate(`/cocreation?meetingId=${encodeURIComponent(meetingId)}`, {
+      state: { name, role, meetingId, meetingState },
+    });
+  }, [role, sendUpdatePhase, navigate, meetingId, name, meetingState]);
+
+  const celebrationSoundRef = useRef(null);
+  useEffect(() => {
+    celebrationSoundRef.current = new Audio('/sounds/celebration.mp3');
+  }, []);
+
+  const handleComplete = useCallback(() => {
+    if (role === 'host' && sendUpdatePhase) {
+      sendUpdatePhase('lobby');
+    }
+    if (celebrationSoundRef.current) {
+      celebrationSoundRef.current.currentTime = 0;
+      celebrationSoundRef.current.play().catch(() => {});
+    }
+    navigate('/', { replace: true });
+  }, [role, sendUpdatePhase, navigate]);
 
   return (
     <PageWrapper>
@@ -60,10 +86,11 @@ export default function FinalShowcasePage() {
           </CameraContainer>
         </Column>
       </MainContent>
-      {(role === 'local' || role === 'host') && (
-        <FloatingBackButton type="button" onClick={() => navigate(-1)} aria-label="Go back">
-          <ChevronLeft size={18} />
-        </FloatingBackButton>
+      {role === 'host' && (
+        <CompleteButton type="button" onClick={handleComplete}>
+          <CheckCircle2 size={18} />
+          Finish Session
+        </CompleteButton>
       )}
     </PageWrapper>
   );
@@ -149,19 +176,18 @@ const CameraContainer = styled.div`
   justify-content: center;
 `;
 
-const FloatingBackButton = styled.button`
+const CompleteButton = styled.button`
   position: fixed;
   right: 24px;
   bottom: 24px;
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
+  padding: 14px 24px;
+  border-radius: 999px;
   border: 1px solid var(--border-color);
-  background-color: var(--surface-color);
-  color: var(--text-color);
+  background-color: var(--primary-color);
+  color: #fff;
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 8px;
   box-shadow: var(--shadow-md);
   cursor: pointer;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
@@ -169,5 +195,6 @@ const FloatingBackButton = styled.button`
   &:hover {
     transform: translateY(-2px);
     box-shadow: var(--shadow-lg);
+    background-color: var(--primary-hover);
   }
 `;

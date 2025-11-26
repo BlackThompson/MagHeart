@@ -1,10 +1,18 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
+import logging
+import os
 
 from .config import CORS_ALLOW_ORIGINS
 from .routers import signals, cocreation
 from .services.arduino_service import get_arduino_service
+
+
+logging.basicConfig(
+    level=os.environ.get("MAGHEART_LOG_LEVEL", "INFO"),
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+)
 
 
 @asynccontextmanager

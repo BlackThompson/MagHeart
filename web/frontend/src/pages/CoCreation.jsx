@@ -245,7 +245,15 @@ export default function CoCreationPage() {
       snapshot: snapshot || coCreationStatus.snapshot,
       snapshotPath: snapshotPath || coCreationStatus.snapshotPath,
     });
-  }, [stageActive, remoteDone, captureSnapshot, uploadSnapshot, updateCoCreationStatus, coCreationStatus.snapshot, coCreationStatus.snapshotPath]);
+  }, [
+    stageActive,
+    remoteDone,
+    captureSnapshot,
+    uploadSnapshot,
+    updateCoCreationStatus,
+    coCreationStatus.snapshot,
+    coCreationStatus.snapshotPath,
+  ]);
 
   const handleLocalComplete = useCallback(() => {
     if (!stageActive || localDone || !isLocalSide) return;
@@ -301,6 +309,44 @@ export default function CoCreationPage() {
     const timer = setTimeout(() => setCelebrationVisible(false), 4500);
     return () => clearTimeout(timer);
   }, [coCreationStatus.globalCelebration, playChime]);
+
+  const handleBackToContext = useCallback(() => {
+    if (!isHost) {
+      navigate(-1);
+      return;
+    }
+    if (sendUpdateMeetingState) {
+      const nextCardStage = {
+        ...(effectiveMeetingState.cardStage || createDefaultCardStage()),
+        status: 'in_progress',
+        remote: {
+          ...(effectiveMeetingState.cardStage?.remote || createDefaultCardStage().remote),
+          activeDrawId: null,
+        },
+      };
+      sendUpdateMeetingState({ cardStage: nextCardStage });
+    }
+    if (sendUpdatePhase) {
+      sendUpdatePhase('shared_context_setup');
+    }
+    navigate(`/shared-context?meetingId=${encodeURIComponent(meetingId)}`, {
+      state: {
+        name,
+        role,
+        meetingId,
+        meetingState: effectiveMeetingState,
+      },
+    });
+  }, [
+    isHost,
+    navigate,
+    sendUpdateMeetingState,
+    effectiveMeetingState,
+    sendUpdatePhase,
+    meetingId,
+    name,
+    role,
+  ]);
 
   const handleNext = () => {
     if (!bothComplete) {
@@ -380,7 +426,7 @@ export default function CoCreationPage() {
         {isHost && (
           <>
             <FloatingNavButton
-              onClick={() => navigate(-1)}
+              onClick={handleBackToContext}
               direction="prev"
               aria-label="Previous"
             />

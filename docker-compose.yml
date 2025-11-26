@@ -14,7 +14,7 @@ services:
     volumes:
       - ./data:/data
     ports:
-      - "8000:8000"
+      - "8176:8176"
 
   frontend:
     build:

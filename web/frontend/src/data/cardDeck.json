@@ -1,84 +1,90 @@
 {
   "cards": [
     {
-      "id": "mood-soft",
+      "id": 1,
       "target": "local",
-      "title": "Soft Mood",
-      "prompt": "In one sentence, describe how soft or light you feel in this moment.",
+      "title": "Mood Word",
+      "prompt": "Describe today’s mood in one word or one emoji.",
       "inputType": "text"
     },
     {
-      "id": "mood-intense",
+      "id": 2,
       "target": "local",
-      "title": "Intense Mood",
-      "prompt": "What is one thing that makes your inner rhythm feel more intense today?",
+      "title": "Color of Today",
+      "prompt": "If today had a color, which would it be?",
       "inputType": "text"
     },
     {
-      "id": "energy-check",
+      "id": 3,
       "target": "local",
-      "title": "Energy Check",
-      "prompt": "On a scale from 1–10, where is your energy right now? Add a word to color it.",
+      "title": "Energy Level",
+      "prompt": "Where’s your energy level today (1–5)? Why there?",
       "inputType": "text"
     },
     {
-      "id": "style-everyday",
-      "target": "remote",
-      "title": "Everyday You",
-      "prompt": "If today was a simple daily scene, what would you be doing in it?",
+      "id": 4,
+      "target": "local",
+      "title": "State Selector",
+      "prompt": "Which feels closest right now: relaxed / focused / slightly tense / open to novelty?",
       "inputType": "text"
     },
     {
-      "id": "style-bold",
-      "target": "remote",
-      "title": "Bold Stroke",
-      "prompt": "If you added one bold detail to yourself today, what would it be?",
+      "id": 5,
+      "target": "local",
+      "title": "Natural Style",
+      "prompt": "What style feels most natural for you lately? (polished / casual / easygoing / functional)",
       "inputType": "text"
     },
     {
-      "id": "identity-lens",
-      "target": "both",
-      "title": "Identity Lens",
-      "prompt": "Complete the sentence: \"Today I move through the world like someone who…\"",
+      "id": 6,
+      "target": "local",
+      "title": "Minifigure Style Direction",
+      "prompt": "If this minifigure had one overall style, which direction fits today? (professional / sporty / sci-fi / adventurous)",
       "inputType": "text"
     },
     {
-      "id": "intent-message",
-      "target": "both",
-      "title": "Hidden Message",
-      "prompt": "If this LEGO figure could say one thing on your behalf, what would you want it to say?",
+      "id": 7,
+      "target": "local",
+      "title": "First Impression",
+      "prompt": "What first impression do you want this figure to give? (steady, bright, energetic, neutral, gentle…)",
       "inputType": "text"
     },
     {
-      "id": "intent-boundary",
-      "target": "both",
-      "title": "Soft Boundary",
-      "prompt": "What is one thing you hope this space protects for you today?",
+      "id": 8,
+      "target": "local",
+      "title": "Material Metaphor",
+      "prompt": "Pick one material that reflects you today — which one resonates? (fabric / metal / wood / cotton-soft / etc.)",
       "inputType": "text"
     },
     {
-      "id": "remote-checkin",
-      "target": "remote",
-      "title": "Remote Check-In",
-      "prompt": "If the other side could feel your presence right now, what would you want them to sense?",
+      "id": 9,
+      "target": "local",
+      "title": "Self vs Alter",
+      "prompt": "Should this minifigure feel 'more like you' — or 'unlike you' today?",
       "inputType": "text"
     },
     {
-      "id": "remote-surprise",
-      "target": "remote",
-      "title": "Small Surprise",
-      "prompt": "Name one small surprise you would secretly prepare for the other side today.",
+      "id": 10,
+      "target": "local",
+      "title": "Visibility Preference",
+      "prompt": "Do you want the figure to stay subtle or stand out more?",
       "inputType": "text"
     },
     {
-      "id": "remote-question",
-      "target": "both",
-      "title": "Hidden Question",
-      "prompt": "If you could ask the other side one honest question with no judgement, what would you ask?",
+      "id": 11,
+      "target": "local",
+      "title": "Mood Object",
+      "prompt": "Is there a small object that could lift your mood today?",
+      "inputType": "text"
+    },
+    {
+      "id": 12,
+      "target": "local",
+      "title": "Everyday Carry",
+      "prompt": "If the figure could carry one everyday item, what would you choose?",
       "inputType": "text"
     }
   ]
 }
-
 
 

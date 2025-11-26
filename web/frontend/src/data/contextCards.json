@@ -1,53 +1,74 @@
 {
-  "stages": [
+  "cards": [
     {
-      "id": "mood",
-      "title": "Pulse of the Moment",
-      "description": "Tune into your current frequency. How does your heart resonate right now?",
-      "cards": [
-        { "id": "relaxed", "label": "Soft & Floating", "value": "Relaxed", "subtext": "Drifting lightly like a cloud." },
-        { "id": "energetic", "label": "Radiant & Alive", "value": "Energetic", "subtext": "Bursting with bright sparks." },
-        { "id": "calm", "label": "Steady & Deep", "value": "Calm", "subtext": "Still waters run deep." },
-        { "id": "playful", "label": "Whimsical", "value": "Playful", "subtext": "Ready for a surprise." },
-        { "id": "focused", "label": "Sharp & Clear", "value": "Focused", "subtext": "A single beam of light." }
-      ]
+      "id": 13,
+      "target": "remote",
+      "title": "Expression Shift",
+      "prompt": "Let the miniFigure that doesn’t fully match your current mood — just slightly off.",
+      "inputType": null
     },
     {
-      "id": "style",
-      "title": "Aesthetic Direction",
-      "description": "Define the texture of your presence. What kind of signal are you broadcasting?",
-      "cards": [
-        { "id": "daily", "label": "Effortless Casual", "value": "Daily", "subtext": "Comfort in the everyday." },
-        { "id": "formal", "label": "Structured Elegance", "value": "Formal", "subtext": "Poise and precision." },
-        { "id": "creative", "label": "Artistic Flow", "value": "Creative", "subtext": "Colors outside the lines." },
-        { "id": "adventurous", "label": "Wild Spirit", "value": "Adventurous", "subtext": "Ready for the unknown." },
-        { "id": "sporty", "label": "Dynamic Motion", "value": "Sporty", "subtext": "Built for speed and action." }
-      ]
+      "id": 14,
+      "target": "remote",
+      "title": "Color Drift",
+      "prompt": "Add one color you almost never pick for yourself.",
+      "inputType": "text"
     },
     {
-      "id": "identity",
-      "title": "Persona Echo",
-      "description": "A glimpse into your soul's reflection today. Who is looking back from the mirror?",
-      "cards": [
-        { "id": "outdoor", "label": "Nature's Child", "value": "Outdoor", "subtext": "Rooted in earth, reaching for sky." },
-        { "id": "thinker", "label": "Deep Observer", "value": "Thinker", "subtext": "Lost in the beauty of logic." },
-        { "id": "doer", "label": "Active Maker", "value": "Doer", "subtext": "Hands that shape the world." },
-        { "id": "dreamer", "label": "Stardust Traveler", "value": "Dreamer", "subtext": "Walking in waking dreams." },
-        { "id": "helper", "label": "Gentle Guardian", "value": "Helper", "subtext": "A heart that beats for others." }
-      ]
+      "id": 15,
+      "target": "remote",
+      "title": "Style Drift",
+      "prompt": "Let the outfit lean into a style you usually wouldn’t wear.",
+      "inputType": null
     },
     {
-      "id": "intent",
-      "title": "Hidden Wishes",
-      "description": "What silent message do you wish to weave into this creation?",
-      "multiSelect": true,
-      "cards": [
-        { "id": "express", "label": "To Be Heard", "value": "Expressive", "subtext": "Letting the inner voice sing." },
-        { "id": "light", "label": "To Feel Weightless", "value": "Lightness", "subtext": "Dropping the heavy burdens." },
-        { "id": "strong", "label": "To Find Courage", "value": "Strength", "subtext": "Standing tall like a mountain." },
-        { "id": "protect", "label": "To Feel Safe", "value": "Protection", "subtext": "Wrapped in a warm embrace." },
-        { "id": "connect", "label": "To Touch a Heart", "value": "Connection", "subtext": "Bridging the space between us." }
-      ]
+      "id": 16,
+      "target": "remote",
+      "title": "Fantasy Tilt",
+      "prompt": "Nudge the look toward fantasy/adventure — just a touch.",
+      "inputType": null
+    },
+    {
+      "id": 17,
+      "target": "remote",
+      "title": "Headwear Shift",
+      "prompt": "Add a hairstyle or hat you’ve never worn before.",
+      "inputType": "text"
+    },
+    {
+      "id": 18,
+      "target": "remote",
+      "title": "Hat with a Story",
+      "prompt": "Give the figure a hat with a hint of story or mystery.",
+      "inputType": null
+    },
+    {
+      "id": 19,
+      "target": "remote",
+      "title": "Unreal Object",
+      "prompt": "Give the figure one item that doesn’t fully belong to real life. (magic, sci-fi, dream-logic, whimsical)",
+      "inputType": "text"
+    },
+    {
+      "id": 20,
+      "target": "remote",
+      "title": "Local Object Interpretation",
+      "prompt": "Local participant picks an object from the room — build the closest LEGO interpretation of it.",
+      "inputType": null
+    },
+    {
+      "id": 21,
+      "target": "remote",
+      "title": "Local Rule Injection",
+      "prompt": "A local member assigns a constraint: one required color / style / odd detail the figure must include.",
+      "inputType": "text"
+    },
+    {
+      "id": 22,
+      "target": "remote",
+      "title": "Gentle Challenge",
+      "prompt": "Add one tiny element that feels 'not quite you.'",
+      "inputType": "text"
     }
   ]
 }

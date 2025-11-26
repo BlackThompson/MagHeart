@@ -5,7 +5,17 @@ import FloatingNavButton from './FloatingNavButton.jsx';
 import CardWheel from './CardWheel.jsx';
 import PlayingCard from './PlayingCard.jsx';
 import deck from '../data/cardDeck.json';
+import contextDeck from '../data/contextCards.json';
 import { createDefaultCardStage } from '../constants/cardStage.js';
+
+const cardRequiresInput = (card) => {
+  if (!card) return false;
+  if (card.inputType === null) return false;
+  if (typeof card.inputType === 'string' && card.inputType.toLowerCase() === 'none') {
+    return false;
+  }
+  return true;
+};
 
 /**
  * LocalCardPanel
@@ -19,6 +29,7 @@ export default function LocalCardPanel({ role, meetingState, onUpdateCardStage, 
   const isLocalSide = role === 'host' || role === 'local';
 
   const allCards = deck.cards || [];
+  const remoteContextCards = contextDeck.cards || [];
   const localCardsFull = useMemo(
     () => allCards.filter((c) => c.target === 'local' || c.target === 'both'),
     [allCards],
@@ -77,8 +88,8 @@ export default function LocalCardPanel({ role, meetingState, onUpdateCardStage, 
 
   // Remote Logic for Phase 2 (Draw)
   const remoteCards = useMemo(
-    () => allCards.filter((c) => c.target === 'remote' || c.target === 'both'),
-    [allCards],
+    () => remoteContextCards.filter((c) => c.target === 'remote' || c.target === 'both'),
+    [remoteContextCards],
   );
   const remoteState = cardStage.remote || {};
   const remoteDrawnCards = remoteState.drawn || [];
@@ -95,6 +106,12 @@ export default function LocalCardPanel({ role, meetingState, onUpdateCardStage, 
     ? remoteDrawnCards.find((d) => d.cardId === activeRemoteDrawId)
     : null;
   const shouldShowDrawModal = currentPhase === 'draw' && Boolean(activeRemoteDrawCard);
+  const remoteSelectionRequiresAnswer = cardRequiresInput(remoteSelectedCard);
+  const activeRemoteDrawRequiresAnswer = activeRemoteDrawCard
+    ? activeRemoteDrawCard.requiresAnswer !== undefined
+      ? activeRemoteDrawCard.requiresAnswer
+      : cardRequiresInput(activeRemoteDrawCard)
+    : false;
 
   const sharedEntries = [
     ...(playedCards || []).map((p) => ({
@@ -110,6 +127,7 @@ export default function LocalCardPanel({ role, meetingState, onUpdateCardStage, 
       title: d.title || d.cardId,
       prompt: d.prompt,
       answer: d.answer,
+      requiresAnswer: d.requiresAnswer !== undefined ? d.requiresAnswer : true,
     })),
   ];
 
@@ -143,7 +161,11 @@ export default function LocalCardPanel({ role, meetingState, onUpdateCardStage, 
   const handleSaveCard = () => {
     // Remote submits answer for the card chosen by host.
     if (isLocalSide) return;
-    if (!remoteSelectedCard || !answer.trim()) return;
+    if (!remoteSelectedCard) return;
+
+    const requiresInput = cardRequiresInput(remoteSelectedCard);
+    const trimmedAnswer = requiresInput ? answer.trim() : '';
+    if (requiresInput && !trimmedAnswer) return;
 
     const now = new Date().toISOString();
     const card = remoteSelectedCard;
@@ -156,7 +178,9 @@ export default function LocalCardPanel({ role, meetingState, onUpdateCardStage, 
             cardId: card.id,
             title: card.title,
             prompt: card.prompt,
-            answer: answer.trim(),
+            answer: trimmedAnswer,
+            inputType: card.inputType ?? 'text',
+            requiresAnswer: requiresInput,
             playedBy: role,
             playedAt: now,
           },
@@ -221,6 +245,8 @@ export default function LocalCardPanel({ role, meetingState, onUpdateCardStage, 
       prompt: cardFromClick.prompt,
       drawnBy: role,
       drawnAt: now,
+      inputType: cardFromClick.inputType ?? 'text',
+      requiresAnswer: cardRequiresInput(cardFromClick),
     };
 
     const nextCardStage = {
@@ -250,14 +276,21 @@ export default function LocalCardPanel({ role, meetingState, onUpdateCardStage, 
   const handleSaveDrawAnswer = () => {
     // Remote confirms answer for the currently previewed drawn card.
     if (isLocalSide) return;
-    if (!activeRemoteDrawCard || !drawAnswer.trim()) return;
+    if (!activeRemoteDrawCard) return;
+
+    const requiresInput =
+      activeRemoteDrawCard.requiresAnswer !== undefined
+        ? activeRemoteDrawCard.requiresAnswer
+        : cardRequiresInput(activeRemoteDrawCard);
+    const trimmedAnswer = requiresInput ? drawAnswer.trim() : '';
+    if (requiresInput && !trimmedAnswer) return;
 
     const now = new Date().toISOString();
     const nextDrawn = remoteDrawnCards.map((d) =>
       d.cardId === activeRemoteDrawCard.cardId
         ? {
             ...d,
-            answer: drawAnswer.trim(),
+            answer: trimmedAnswer,
             answeredBy: role,
             answeredAt: now,
           }
@@ -331,7 +364,7 @@ export default function LocalCardPanel({ role, meetingState, onUpdateCardStage, 
                 <ContextTitle $side={item.side}>{item.title}</ContextTitle>
                 {item.prompt && <ContextPrompt>{item.prompt}</ContextPrompt>}
                 {item.answer && <ContextAnswer>{item.answer}</ContextAnswer>}
-                {!item.answer && item.side === 'remote' && (
+                {!item.answer && item.side === 'remote' && item.requiresAnswer !== false && (
                   <ContextHint>Waiting for remote answer…</ContextHint>
                 )}
               </ContextMain>
@@ -394,15 +427,20 @@ export default function LocalCardPanel({ role, meetingState, onUpdateCardStage, 
 
             {/* Answer Input Overlay */}
             <InputOverlay>
-              <StyledTextArea
-                placeholder="Write your answer..."
-                value={answer}
-                onChange={(e) => setAnswer(e.target.value)}
-                autoFocus
-              />
+              {remoteSelectionRequiresAnswer && (
+                <StyledTextArea
+                  placeholder="Write your answer..."
+                  value={answer}
+                  onChange={(e) => setAnswer(e.target.value)}
+                  autoFocus
+                />
+              )}
+              {!remoteSelectionRequiresAnswer && (
+                <NoInputHint>No text needed — tap ✓ when you want to keep this card.</NoInputHint>
+              )}
               <ButtonRow>
                 <CancelButton onClick={handleCloseModal}>✕</CancelButton>
-                {answer.trim() && (
+                {(!remoteSelectionRequiresAnswer || answer.trim()) && (
                   <SaveButton onClick={handleSaveCard}>✓</SaveButton>
                 )}
               </ButtonRow>
@@ -425,20 +463,27 @@ export default function LocalCardPanel({ role, meetingState, onUpdateCardStage, 
             />
             {isLocalSide ? (
               <PreviewMeta>
-                <PreviewTitle>Remote is answering...</PreviewTitle>
+                <PreviewTitle>
+                  {activeRemoteDrawRequiresAnswer ? 'Remote is answering...' : 'Remote is viewing the card...'}
+                </PreviewTitle>
               </PreviewMeta>
             ) : (
               <>
                 <InputOverlay>
-                  <StyledTextArea
-                    placeholder="Write your answer..."
-                    value={drawAnswer}
-                    onChange={(e) => setDrawAnswer(e.target.value)}
-                    autoFocus
-                  />
+                  {activeRemoteDrawRequiresAnswer && (
+                    <StyledTextArea
+                      placeholder="Write your answer..."
+                      value={drawAnswer}
+                      onChange={(e) => setDrawAnswer(e.target.value)}
+                      autoFocus
+                    />
+                  )}
+                  {!activeRemoteDrawRequiresAnswer && (
+                    <NoInputHint>No text needed — tap ✓ to keep this draw.</NoInputHint>
+                  )}
                   <ButtonRow>
                     <CancelButton onClick={handleCancelDrawAnswer}>✕</CancelButton>
-                    {drawAnswer.trim() && (
+                    {(!activeRemoteDrawRequiresAnswer || drawAnswer.trim()) && (
                       <SaveButton onClick={handleSaveDrawAnswer}>✓</SaveButton>
                     )}
                   </ButtonRow>
@@ -459,7 +504,7 @@ export default function LocalCardPanel({ role, meetingState, onUpdateCardStage, 
               isSelected={false}
             />
             <WaitingMessage>
-              Remote is answering...
+              {remoteSelectionRequiresAnswer ? 'Remote is answering...' : 'Remote is viewing the card...'}
             </WaitingMessage>
           </ModalCardContainer>
         </ModalOverlay>
@@ -770,6 +815,13 @@ const StyledTextArea = styled.textarea`
   font-family: inherit;
   
   &:focus { outline: 2px solid var(--primary-color); }
+`;
+
+const NoInputHint = styled.p`
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--text-color-muted);
+  text-align: center;
 `;
 
 const ButtonRow = styled.div`

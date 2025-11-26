@@ -10,6 +10,7 @@ from ..models.signal import HeartRateIn
 from ..storage.database import append_heart_rate, read_latest
 from ..services import signal_service as svc
 from ..services.arduino_service import send_heart_rate_to_arduino
+from ..services.meeting_manager import meeting_manager
 
 logger = logging.getLogger(__name__)
 
@@ -21,6 +22,36 @@ async def get_user_id(
     x_user_id: Optional[str] = Header(None), userId: Optional[str] = None
 ):
     return x_user_id or userId or "demo"
+
+
+async def _broadcast_to_meetings(user_id: str, data: dict) -> None:
+    """
+    Propagate the latest heart rate to any meeting sessions where the user is present.
+    """
+    meeting_ids = meeting_manager.repo.list_meetings_for_user(user_id)
+    if not meeting_ids:
+        return
+
+    # Ensure dictionary copies so downstream mutations don't affect persisted values.
+    heart_rate_payload = {**data}
+    heart_rate_with_user = {"userId": user_id, **heart_rate_payload}
+
+    for meeting_id in meeting_ids:
+        try:
+            meeting_manager.repo.update_participant_payload(meeting_id, user_id, {"heartRate": heart_rate_payload})
+            message = {
+                "type": "heart_rate_update",
+                "payload": {**heart_rate_with_user, "meetingId": meeting_id},
+            }
+            await meeting_manager.broadcast(json.dumps(message), meeting_id)
+            await meeting_manager.broadcast_state(meeting_id)
+        except Exception as exc:
+            logger.warning(
+                "Failed to broadcast heart rate to meeting %s for user %s: %s",
+                meeting_id,
+                user_id,
+                exc,
+            )
 
 
 @router.post("/api/heart_rate")
@@ -36,6 +67,7 @@ async def post_heart_rate(payload: HeartRateIn, user_id: str = Depends(get_user_
     event = {"id": payload.ts, "type": "hr", "data": data}
     await svc.set_latest(user_id, data)
     await svc.publish(user_id, event)
+    await _broadcast_to_meetings(user_id, data)
 
     # Send heart rate to Arduino device
     try:

@@ -207,6 +207,47 @@ class MeetingRepository:
             rows = cur.fetchall()
         return [self._merge_participant_row(row, self._deserialize_payload(row["payload_json"])) for row in rows]
 
+    def list_meetings_for_user(self, user_id: str) -> List[str]:
+        """
+        Return the distinct meeting IDs where the given user currently appears.
+        """
+        with self._lock:
+            cur = self.conn.execute(
+                "SELECT DISTINCT meeting_id FROM participants WHERE user_id = ?",
+                (user_id,),
+            )
+            rows = cur.fetchall()
+        return [row["meeting_id"] for row in rows]
+
+    def update_participant_payload(self, meeting_id: str, user_id: str, payload_patch: Dict[str, Any]) -> None:
+        """
+        Merge the provided payload patch into the participant's persisted payload.
+        """
+        if not payload_patch:
+            return
+
+        with self._lock, self.conn:
+            cur = self.conn.execute(
+                "SELECT payload_json FROM participants WHERE meeting_id = ? AND user_id = ?",
+                (meeting_id, user_id),
+            )
+            row = cur.fetchone()
+            if not row:
+                return
+
+            existing_payload = self._deserialize_payload(row["payload_json"])
+            merged_payload = {**existing_payload, **payload_patch}
+            payload_json = json.dumps(merged_payload)
+
+            self.conn.execute(
+                """
+                UPDATE participants
+                SET payload_json = ?
+                WHERE meeting_id = ? AND user_id = ?
+                """,
+                (payload_json, meeting_id, user_id),
+            )
+
     def cleanup_participants(
         self,
         meeting_id: str,

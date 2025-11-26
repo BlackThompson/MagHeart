@@ -13,7 +13,7 @@
 #### Software @Dylan
 
 - [x] Read Apple Watch heart rate stream data (a simple demo to demonstrate)
-- [ ] Building Lego Figures App (A separate app / a plugin of Zoom?)
+- [x] Building Lego Figures App (A separate app / a plugin of Zoom?)
 
 #### Other @Kacy
 

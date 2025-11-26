@@ -1,5 +1,6 @@
 import base64
 import json
+import logging
 import os
 from typing import Any, Dict
 
@@ -11,6 +12,7 @@ from ..config import DATA_DIR
 from ..services.meeting_manager import meeting_manager
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 _SNAPSHOT_DIR = os.path.join(DATA_DIR, "screenshots")
 os.makedirs(_SNAPSHOT_DIR, exist_ok=True)
@@ -104,9 +106,11 @@ async def save_snapshot(payload: SnapshotIn):
     path = os.path.join(_SNAPSHOT_DIR, filename)
 
     try:
+        logger.info("Saving snapshot for meeting=%s user=%s path=%s", safe_meeting, safe_user, path)
         with open(path, "wb") as f:
             f.write(image_bytes)
     except Exception as exc:
+        logger.exception("Failed to save snapshot for meeting=%s user=%s path=%s", safe_meeting, safe_user, path)
         raise HTTPException(status_code=500, detail=f"Failed to save snapshot: {exc}") from exc
 
     url = f"/cocreation/snapshot/{safe_meeting}/{safe_user}"
@@ -119,5 +123,6 @@ async def get_snapshot(meeting_id: str, user_id: str):
     safe_user = _safe_filename(user_id)
     path = os.path.join(_SNAPSHOT_DIR, f"{safe_meeting}__{safe_user}.png")
     if not os.path.exists(path):
+        logger.warning("Snapshot requested but not found: meeting=%s user=%s path=%s", safe_meeting, safe_user, path)
         raise HTTPException(status_code=404, detail="Snapshot not found")
     return FileResponse(path, media_type="image/png")

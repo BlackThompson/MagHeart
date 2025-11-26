@@ -12,9 +12,9 @@ export default function IdentitySetup() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const saved = window.localStorage.getItem('magheart_avatar_seed');
-    if (saved) {
-      setAvatarSeed(saved);
+    const savedAvatar = window.localStorage.getItem('magheart_avatar_seed');
+    if (savedAvatar) {
+      setAvatarSeed(savedAvatar);
     } else {
       setAvatarSeed(Math.random().toString(36).slice(2));
     }

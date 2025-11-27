@@ -12,8 +12,11 @@ bool isPeak = false;            // 当前是否在高峰期（收缩期）
 
 // PWM 值定义
 const int PWM_PEAK = 255;   // 5挡 - 心跳高峰（收缩期）100%
-const int PWM_VALLEY = 153; // 3挡 - 心跳低谷（舒张期）60%
-// const int PWM_VALLEY = 204; // 4挡 - 心跳低谷（舒张期）80%
+// const int PWM_PEAK = 200;   // 5挡 - 心跳高峰（收缩期）100%
+
+const int PWM_VALLEY = 200; // 3挡 - 心跳低谷（舒张期）60%
+// const int PWM_VALLEY = 153; // 4挡 - 心跳低谷（舒张期）80%
+// const int PWM_VALLEY = 255; // 4挡 - 心跳低谷（舒张期）80%
 const int PWM_OFF = 0; // 0挡 - 关闭
 
 //  【0，51，102，153，204，255】

@@ -1,151 +1,205 @@
-// ESP32 Arduino Core 3.0+ 新版 PWM 写法
-const int pwmPin = 5;     // PWM 输出引脚
-const int freq = 5000;    // PWM 频率 (Hz)
-const int resolution = 8; // 分辨率：8位 (0-255)
+// 三个电磁铁异步心跳示例
 
-// 心跳模拟参数
-int heartRate = 0;              // 心率 (BPM)
-unsigned long beatInterval = 0; // 每次心跳的间隔时间 (ms)
-unsigned long lastBeatTime = 0; // 上次心跳的时间
-bool isBeating = false;         // 当前是否在心跳周期中
-bool isPeak = false;            // 当前是否在高峰期（收缩期）
+const int NUM_CHANNELS = 3;
 
-// PWM 值定义
-const int PWM_PEAK = 255;   // 5挡 - 心跳高峰（收缩期）100%
-// const int PWM_PEAK = 200;   // 5挡 - 心跳高峰（收缩期）100%
+// 三个电磁铁使用的 GPIO 引脚
+const int pwmPins[NUM_CHANNELS] = {5, 18, 19};
 
-const int PWM_VALLEY = 200; // 3挡 - 心跳低谷（舒张期）60%
-// const int PWM_VALLEY = 153; // 4挡 - 心跳低谷（舒张期）80%
-// const int PWM_VALLEY = 255; // 4挡 - 心跳低谷（舒张期）80%
-const int PWM_OFF = 0; // 0挡 - 关闭
+const int freq = 5000;
+const int resolution = 8;
 
-//  【0，51，102，153，204，255】
+// PWM 强度
+const int PWM_PEAK = 255;   // 收缩期
+const int PWM_VALLEY = 200; // 舒张期
+const int PWM_OFF = 0;
 
-// 心跳周期时间分配（百分比）
-const float SYSTOLE_RATIO = 0.35;  // 收缩期占35%
-const float DIASTOLE_RATIO = 0.65; // 舒张期占65%
+// 心跳周期比例
+const float SYSTOLE_RATIO = 0.35f;
+const float DIASTOLE_RATIO = 0.65f;
 
-unsigned long systoleDuration = 0;  // 收缩期持续时间
-unsigned long diastoleDuration = 0; // 舒张期持续时间
-unsigned long phaseStartTime = 0;   // 当前阶段开始时间
+// 每个通道的状态（初始为 0，表示未绑定 / 不跳动）
+int heartRate[NUM_CHANNELS] = {0, 0, 0};
+
+unsigned long beatInterval[NUM_CHANNELS] = {0, 0, 0};
+unsigned long systoleDuration[NUM_CHANNELS] = {0, 0, 0};
+unsigned long diastoleDuration[NUM_CHANNELS] = {0, 0, 0};
+unsigned long phaseStartTime[NUM_CHANNELS] = {0, 0, 0};
+
+bool isBeating[NUM_CHANNELS] = {false, false, false};
+bool isPeak[NUM_CHANNELS] = {false, false, false};
+
+// 串口输入缓冲 用于非阻塞读取
+String serialBuffer;
+
+// 设置某个通道的心率
+void setHeartRateForChannel(int ch, int bpm)
+{
+  if (bpm <= 0)
+  {
+    isBeating[ch] = false;
+    ledcWrite(pwmPins[ch], PWM_OFF);
+    return;
+  }
+
+  heartRate[ch] = bpm;
+  beatInterval[ch] = 60000UL / heartRate[ch];
+  systoleDuration[ch] = (unsigned long)(beatInterval[ch] * SYSTOLE_RATIO);
+  diastoleDuration[ch] = (unsigned long)(beatInterval[ch] * DIASTOLE_RATIO);
+
+  isBeating[ch] = true;
+  isPeak[ch] = true;
+  phaseStartTime[ch] = millis();
+  ledcWrite(pwmPins[ch], PWM_PEAK);
+}
+
+// 处理一整行串口指令
+void handleCommand(String line)
+{
+  line.trim();
+  if (line.length() == 0)
+    return;
+
+  // 全部关闭
+  if (line.equalsIgnoreCase("off"))
+  {
+    for (int ch = 0; ch < NUM_CHANNELS; ch++)
+    {
+      isBeating[ch] = false;
+      ledcWrite(pwmPins[ch], PWM_OFF);
+    }
+    Serial.println("全部通道已关闭");
+    return;
+  }
+
+  // 全部恢复
+  if (line.equalsIgnoreCase("on"))
+  {
+    for (int ch = 0; ch < NUM_CHANNELS; ch++)
+    {
+      setHeartRateForChannel(ch, heartRate[ch]);
+    }
+    Serial.println("全部通道已恢复跳动");
+    return;
+  }
+
+  // 判断是否为“单个 BPM 值”（例如云端 bridge.py 发来的 "83"）
+  int spaceIndex = line.indexOf(' ');
+  if (spaceIndex <= 0)
+  {
+    int bpm = line.toInt();
+    if (bpm < 0 || bpm > 200)
+    {
+      Serial.println("心率需在 0~200 之间");
+      return;
+    }
+
+    // 这里做一个简单的“3 个不同心率”的映射：
+    // ch0 比较慢，ch1 为实际值，ch2 稍微快一点
+    int bpm0 = max(0, bpm - 20);
+    int bpm1 = bpm;
+    int bpm2 = min(200, bpm + 20);
+
+    setHeartRateForChannel(0, bpm0);
+    setHeartRateForChannel(1, bpm1);
+    setHeartRateForChannel(2, bpm2);
+
+    Serial.print("收到云端 BPM=");
+    Serial.print(bpm);
+    Serial.print(" 映射为: ch0=");
+    Serial.print(bpm0);
+    Serial.print(" ch1=");
+    Serial.print(bpm1);
+    Serial.print(" ch2=");
+    Serial.println(bpm2);
+    return;
+  }
+
+  // 单个通道设置  格式: 通道 空格 心率
+  int ch = line.substring(0, spaceIndex).toInt();
+  int bpm = line.substring(spaceIndex + 1).toInt();
+
+  if (ch >= 0 && ch < NUM_CHANNELS && bpm >= 0 && bpm <= 200)
+  {
+    setHeartRateForChannel(ch, bpm);
+    Serial.print("通道 ");
+    Serial.print(ch);
+    Serial.print(" 心率设置为 ");
+    Serial.print(bpm);
+    Serial.println(" BPM");
+  }
+  else
+  {
+    Serial.println("通道零到二 心率零到二百");
+  }
+}
 
 void setup()
 {
   Serial.begin(115200);
 
-  // 新版 API：直接配置引脚
-  ledcAttach(pwmPin, freq, resolution);
+  for (int i = 0; i < NUM_CHANNELS; i++)
+  {
+    ledcAttach(pwmPins[i], freq, resolution);
+    ledcWrite(pwmPins[i], PWM_OFF);
+  }
 
-  // 初始输出为 0
-  ledcWrite(pwmPin, PWM_OFF);
-
-  Serial.println("=================================");
-  Serial.println("ESP32 心跳磁力模拟器");
-  Serial.println("=================================");
-  Serial.println("输入心率 (40-200 BPM) 开始模拟心跳");
-  Serial.println("输入 0 停止心跳模拟");
-  Serial.println("5挡=心跳高峰(收缩期), 3挡=心跳低谷(舒张期)");
-  Serial.println("=================================");
+  // 初始不启动任何通道，等待绑定用户后通过串口指令设置 BPM 再开始跳动
+  Serial.println("三个电磁铁心跳模拟已启动（默认全部关闭，等待绑定用户后开始跳动）");
+  Serial.println("可输入:");
+  Serial.println(" 0 75    代表通道零设为七十五");
+  Serial.println(" on      全部恢复跳动");
+  Serial.println(" off     全部停止");
 }
 
 void loop()
 {
-  // 处理串口输入
-  if (Serial.available() > 0)
+  unsigned long now = millis();
+
+  // 更新三个通道
+  for (int ch = 0; ch < NUM_CHANNELS; ch++)
   {
-    String input = Serial.readStringUntil('\n');
-    input.trim();
+    if (!isBeating[ch] || heartRate[ch] <= 0)
+      continue;
 
-    int bpm = input.toInt();
+    unsigned long elapsed = now - phaseStartTime[ch];
 
-    if (bpm == 0)
+    if (isPeak[ch])
     {
-      // 停止心跳模拟
-      heartRate = 0;
-      isBeating = false;
-      ledcWrite(pwmPin, PWM_OFF);
-      Serial.println("❌ 心跳模拟已停止");
-    }
-    else if (bpm >= 40 && bpm <= 200)
-    {
-      // 设置新的心率
-      heartRate = bpm;
-      beatInterval = 60000 / heartRate; // 每次心跳的总时间 (ms)
-
-      // 计算收缩期和舒张期的持续时间
-      systoleDuration = beatInterval * SYSTOLE_RATIO;
-      diastoleDuration = beatInterval * DIASTOLE_RATIO;
-
-      // 如果是第一次启动，从高峰期开始
-      if (!isBeating)
+      if (elapsed >= systoleDuration[ch])
       {
-        isPeak = true;
-        ledcWrite(pwmPin, PWM_PEAK);
-        Serial.print("🚀 首次启动 | ");
+        isPeak[ch] = false;
+        phaseStartTime[ch] = now;
+        ledcWrite(pwmPins[ch], PWM_VALLEY);
       }
-      else
-      {
-        // 已经在跳动中，保持当前阶段，只重置阶段开始时间
-        // 这样可以平滑过渡到新的心率，避免卡顿
-        Serial.print("🔄 调整心率 | 当前阶段: ");
-        Serial.print(isPeak ? "收缩期" : "舒张期");
-        Serial.print(" | ");
-      }
-
-      isBeating = true;
-      lastBeatTime = millis();
-      phaseStartTime = millis(); // 重置当前阶段的计时
-
-      Serial.println("=================================");
-      Serial.print("✅ 心率设置为: ");
-      Serial.print(heartRate);
-      Serial.println(" BPM");
-      Serial.print("   心跳周期: ");
-      Serial.print(beatInterval);
-      Serial.println(" ms");
-      Serial.print("   收缩期: ");
-      Serial.print(systoleDuration);
-      Serial.println(" ms (5挡)");
-      Serial.print("   舒张期: ");
-      Serial.print(diastoleDuration);
-      Serial.println(" ms (3挡)");
-      Serial.println("=================================");
     }
     else
     {
-      Serial.println("⚠️  请输入有效的心率值 (40-200 BPM) 或 0 停止");
+      if (elapsed >= diastoleDuration[ch])
+      {
+        isPeak[ch] = true;
+        phaseStartTime[ch] = now;
+        ledcWrite(pwmPins[ch], PWM_PEAK);
+      }
     }
   }
 
-  // 心跳模拟逻辑
-  if (isBeating && heartRate > 0)
+  // 非阻塞串口读取和命令解析
+  while (Serial.available() > 0)
   {
-    unsigned long currentTime = millis();
-    unsigned long elapsed = currentTime - phaseStartTime;
+    char c = Serial.read();
 
-    if (isPeak)
+    if (c == '\n' || c == '\r')
     {
-      // 当前在收缩期（高峰）
-      if (elapsed >= systoleDuration)
+      serialBuffer.trim();
+      if (serialBuffer.length() > 0)
       {
-        // 切换到舒张期（低谷）
-        isPeak = false;
-        phaseStartTime = currentTime;
-        ledcWrite(pwmPin, PWM_VALLEY);
-        Serial.print("💓 跳动... | BPM: ");
-        Serial.println(heartRate);
+        handleCommand(serialBuffer);
       }
+      serialBuffer = "";
     }
     else
     {
-      // 当前在舒张期（低谷）
-      if (elapsed >= diastoleDuration)
-      {
-        // 切换到下一次收缩期（高峰）
-        isPeak = true;
-        phaseStartTime = currentTime;
-        ledcWrite(pwmPin, PWM_PEAK);
-      }
+      serialBuffer += c;
     }
   }
 }

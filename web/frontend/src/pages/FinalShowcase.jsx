@@ -17,6 +17,7 @@ export default function FinalShowcasePage() {
     sendUpdatePhase,
     isConnected,
     meetingState,
+    sendEndMeeting,
   } = useMeetingSession();
 
   useEffect(() => {
@@ -47,15 +48,14 @@ export default function FinalShowcasePage() {
   }, []);
 
   const handleComplete = useCallback(() => {
-    if (role === 'host' && sendUpdatePhase) {
-      sendUpdatePhase('lobby');
+    if (role === 'host' && sendEndMeeting) {
+      sendEndMeeting('final_showcase_complete');
     }
     if (celebrationSoundRef.current) {
       celebrationSoundRef.current.currentTime = 0;
       celebrationSoundRef.current.play().catch(() => {});
     }
-    navigate('/', { replace: true });
-  }, [role, sendUpdatePhase, navigate]);
+  }, [role, sendEndMeeting]);
 
   return (
     <PageWrapper>

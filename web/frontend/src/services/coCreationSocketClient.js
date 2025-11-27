@@ -17,6 +17,7 @@ class CoCreationSocketClient {
       meetingPhase: 'lobby',
       meetingState: {},
       isConnected: false,
+      meetingEnded: false,
     };
 
     this.subscribers = new Set();
@@ -212,6 +213,9 @@ class CoCreationSocketClient {
           [userId]: message.payload,
         };
       }
+    } else if (message.type === 'meeting_ended') {
+      this.state.meetingEnded = true;
+      this.state.messages = [...this.state.messages, message];
     } else if (message.type === 'phase_changed') {
       if (message.payload?.phase) {
         this.state.meetingPhase = message.payload.phase;
@@ -277,6 +281,16 @@ class CoCreationSocketClient {
     });
   }
 
+  sendEndMeeting(reason = 'session_complete') {
+    this._sendRaw({
+      type: 'end_meeting',
+      payload: {
+        reason,
+        timestamp: new Date().toISOString(),
+      },
+    });
+  }
+
   // Stop everything and close connection
   stop() {
     this.stopped = true;
@@ -294,6 +308,7 @@ class CoCreationSocketClient {
       this.ws = null;
     }
     this.state.isConnected = false;
+    this.state.meetingEnded = false;
     this._emit();
   }
 
@@ -313,6 +328,7 @@ class CoCreationSocketClient {
     }
     this.isConnected = false;
     this.state.isConnected = false;
+    this.state.meetingEnded = false;
     this._emit();
   }
 }

@@ -11,7 +11,6 @@ struct ContentView: View {
     @StateObject private var workout = WorkoutManager()
     @State private var running = false
     @State private var status: String = "Initializing..."
-    @State private var backendStatus: String = "Checking…"
 
     var body: some View {
         TabView {
@@ -35,7 +34,6 @@ struct ContentView: View {
             // Page 2: Status & Info
             StatusInfoView(
                 status: status,
-                backendStatus: backendStatus,
                 isRunning: running
             )
             .containerBackground(.black.gradient, for: .tabView)
@@ -44,12 +42,6 @@ struct ContentView: View {
         .onAppear {
             status = "Requesting permissions..."
             WatchSessionManager.shared.start()
-            // Fire a backend health check when entering the app
-            WatchUploader.shared.healthCheck { ok in
-                DispatchQueue.main.async {
-                    self.backendStatus = ok ? "OK" : "Unreachable"
-                }
-            }
             workout.requestPermissions { ok in
                 if ok {
                     status = "Ready"

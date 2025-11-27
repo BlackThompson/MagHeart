@@ -5,15 +5,13 @@ final class AppSettings: ObservableObject {
     static let shared = AppSettings()
     private init() {
         // Load persisted values or defaults
-        backendURLString = UserDefaults.standard.string(forKey: Keys.backendURL) ?? ""
+        backendURLString = UserDefaults.standard.string(forKey: Keys.backendURL) ?? Config.backendBaseURL.absoluteString
         userId = UserDefaults.standard.string(forKey: Keys.userId) ?? "demo"
-        uploadDirectFallback = UserDefaults.standard.object(forKey: Keys.uploadDirectFallback) as? Bool ?? false
     }
     
     private enum Keys {
         static let backendURL = "AppSettings.backendURL"
         static let userId = "AppSettings.userId"
-        static let uploadDirectFallback = "AppSettings.uploadDirectFallback"
     }
     
     @Published var backendURLString: String {
@@ -28,12 +26,6 @@ final class AppSettings: ObservableObject {
         }
     }
     
-    @Published var uploadDirectFallback: Bool {
-        didSet {
-            UserDefaults.standard.set(uploadDirectFallback, forKey: Keys.uploadDirectFallback)
-        }
-    }
-    
     var backendURL: URL? {
         URL(string: backendURLString)
     }
@@ -43,5 +35,3 @@ final class AppSettings: ObservableObject {
         return url.scheme == "https" && url.host != nil
     }
 }
-
-

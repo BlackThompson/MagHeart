@@ -11,7 +11,7 @@ private var isPreviewRunning: Bool {
 struct HRPhoneView: View {
     @StateObject private var watchManager = WatchSessionManager.shared
     @State private var lastBpm: Int? = nil
-    @State private var status: String = "Waiting…"
+    @State private var status: String = ""
 
     var body: some View {
         NavigationView {
@@ -33,17 +33,10 @@ struct HRPhoneView: View {
                     
                     Spacer()
                     
-                    // Status cards
-                    VStack(spacing: 12) {
-                        // Watch connection status
-                        WatchConnectionStatusCard(watchManager: watchManager)
-                        
-                        // App status card
-                        if shouldShowStatusCard {
-                            StatusMessageCard(message: status)
-                        }
+                    if shouldShowUploadedCard {
+                        StatusMessageCard(message: status)
+                            .padding(.horizontal, 24)
                     }
-                    .padding(.horizontal, 24)
                     
                     Spacer()
                 }
@@ -54,17 +47,11 @@ struct HRPhoneView: View {
         .onAppear {
             if isPreviewRunning {
                 // Skip system services in SwiftUI previews; show mock data
-                status = "Preview Mode"
+                status = "Uploaded: 72 BPM"
                 lastBpm = 72
             } else {
                 // Start watch session manager
                 WatchSessionManager.shared.start()
-                
-                // Check watch status
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                    watchManager.checkWatchAppStatus()
-                    updateStatus()
-                }
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: .didUploadHeartRate)) { note in
@@ -73,27 +60,9 @@ struct HRPhoneView: View {
         }
     }
     
-    // Only show status card for messages that are not already reflected
-    // by the watch-connection card (to avoid duplication).
-    private var shouldShowStatusCard: Bool {
+    private var shouldShowUploadedCard: Bool {
         guard !status.isEmpty else { return false }
-        let lower = status.lowercased()
-        if lower.contains("install watch app") { return false }
-        if lower.contains("open watch app") { return false }
-        if lower.contains("ready to receive data") { return false }
-        return true
-    }
-    
-    private func updateStatus() {
-        if watchManager.isWatchAppInstalled {
-            if watchManager.isReachable {
-                status = "Ready to receive data"
-            } else {
-                status = "Open Watch App to start monitoring"
-            }
-        } else {
-            status = "Install Watch App from iPhone's Watch app"
-        }
+        return status.lowercased().hasPrefix("uploaded")
     }
 }
 

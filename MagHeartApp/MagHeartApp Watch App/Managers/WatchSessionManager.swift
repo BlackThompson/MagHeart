@@ -12,15 +12,14 @@ final class WatchSessionManager: NSObject, WCSessionDelegate {
     }
     
     func sendHeartRate(_ payload: HeartRatePayload) {
-        if WCSession.default.isReachable {
-            if let data = try? JSONEncoder().encode(payload) {
-                WCSession.default.sendMessageData(data, replyHandler: nil) { err in
-                    print("[WC Watch] send error: \(err)")
-                    if WatchSettings.shared.uploadDirectFallback { WatchUploader.shared.postHeartRate(payload) }
-                }
+        guard WCSession.default.isReachable else {
+            print("[WC Watch] iPhone not reachable; cannot upload heart rate right now.")
+            return
+        }
+        if let data = try? JSONEncoder().encode(payload) {
+            WCSession.default.sendMessageData(data, replyHandler: nil) { err in
+                print("[WC Watch] send error: \(err)")
             }
-        } else if WatchSettings.shared.uploadDirectFallback {
-            WatchUploader.shared.postHeartRate(payload)
         }
     }
     
@@ -32,5 +31,4 @@ final class WatchSessionManager: NSObject, WCSessionDelegate {
         WatchSettings.shared.apply(context: applicationContext)
     }
 }
-
 

@@ -64,7 +64,7 @@ export function MeetingSessionProvider() {
     initialPhase,
   });
 
-  const { meetingPhase } = socketState;
+  const { meetingPhase, meetingEnded, sendLeaveMeeting } = socketState;
 
   useEffect(() => {
     if (!meetingPhase || !name || !role || role === 'host') {
@@ -87,6 +87,20 @@ export function MeetingSessionProvider() {
       });
     }
   }, [meetingPhase, location.pathname, navigate, meetingId, name, role, avatarSeed]);
+
+  const completionHandledRef = useRef(false);
+  useEffect(() => {
+    if (!meetingEnded || completionHandledRef.current) {
+      return;
+    }
+    completionHandledRef.current = true;
+    if (sendLeaveMeeting) {
+      sendLeaveMeeting('meeting_completed');
+    }
+    const client = getCoCreationSocketClient();
+    client.stop();
+    navigate('/', { replace: true });
+  }, [meetingEnded, sendLeaveMeeting, navigate]);
 
   const value = useMemo(
     () => ({

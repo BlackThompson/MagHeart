@@ -8,7 +8,6 @@ struct SettingsView: View {
     
     @State private var urlInput: String = ""
     @State private var userIdInput: String = ""
-    @State private var uploadDirect: Bool = false
     
     @State private var healthCheckResult: String = ""
     @State private var isTesting: Bool = false
@@ -58,21 +57,6 @@ struct SettingsView: View {
                                 .textInputAutocapitalization(.never)
                                 .autocorrectionDisabled(true)
                                 .font(.body)
-                        }
-                    }
-                    
-                    Toggle(isOn: $uploadDirect) {
-                        HStack(spacing: 12) {
-                            Image(systemName: "applewatch")
-                                .foregroundColor(.orange)
-                                .frame(width: 28)
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text("Direct Upload")
-                                    .font(.body)
-                                Text("Upload from Watch when iPhone unreachable")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
                         }
                     }
                     
@@ -179,9 +163,8 @@ struct SettingsView: View {
             .navigationBarTitleDisplayMode(.large)
         }
         .onAppear {
-            urlInput = appSettings.backendURLString
+            urlInput = appSettings.backendURLString.isEmpty ? Config.backendBaseURL.absoluteString : appSettings.backendURLString
             userIdInput = appSettings.userId
-            uploadDirect = appSettings.uploadDirectFallback
             // ensure watch status refresh
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
                 watchManager.checkWatchAppStatus()
@@ -205,7 +188,6 @@ struct SettingsView: View {
     private func applySettings() {
         appSettings.backendURLString = urlInput
         appSettings.userId = userIdInput
-        appSettings.uploadDirectFallback = uploadDirect
         // also push once
         watchManager.syncSettingsToWatch()
     }

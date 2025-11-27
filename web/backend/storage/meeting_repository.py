@@ -122,6 +122,17 @@ class MeetingRepository:
             )
         return current_state
 
+    def delete_meeting(self, meeting_id: str) -> None:
+        with self._lock, self.conn:
+            self.conn.execute(
+                "DELETE FROM participants WHERE meeting_id = ?",
+                (meeting_id,),
+            )
+            self.conn.execute(
+                "DELETE FROM meetings WHERE meeting_id = ?",
+                (meeting_id,),
+            )
+
     # -- Participants --------------------------------------------------------
 
     def get_participant(self, meeting_id: str, user_id: str) -> Optional[Dict[str, Any]]:

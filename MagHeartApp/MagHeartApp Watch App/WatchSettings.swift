@@ -3,15 +3,13 @@ import Foundation
 final class WatchSettings {
     static let shared = WatchSettings()
     private init() {
-        backendURLString = UserDefaults.standard.string(forKey: Keys.backendURL) ?? ""
-        userId = UserDefaults.standard.string(forKey: Keys.userId) ?? "demo"
-        uploadDirectFallback = UserDefaults.standard.object(forKey: Keys.uploadDirectFallback) as? Bool ?? false
+        backendURLString = UserDefaults.standard.string(forKey: Keys.backendURL) ?? WatchConfig.backendBaseURL.absoluteString
+        userId = UserDefaults.standard.string(forKey: Keys.userId) ?? WatchConfig.userId
     }
     
     private enum Keys {
         static let backendURL = "WatchSettings.backendURL"
         static let userId = "WatchSettings.userId"
-        static let uploadDirectFallback = "WatchSettings.uploadDirectFallback"
     }
     
     var backendURLString: String {
@@ -20,10 +18,6 @@ final class WatchSettings {
     var userId: String {
         didSet { UserDefaults.standard.set(userId, forKey: Keys.userId) }
     }
-    var uploadDirectFallback: Bool {
-        didSet { UserDefaults.standard.set(uploadDirectFallback, forKey: Keys.uploadDirectFallback) }
-    }
-    
     var backendURL: URL? {
         URL(string: backendURLString)
     }
@@ -35,11 +29,6 @@ final class WatchSettings {
         if let uid = context["userId"] as? String {
             userId = uid
         }
-        if let direct = context["uploadDirectFallback"] as? Bool {
-            uploadDirectFallback = direct
-        }
         print("[WatchSettings] Applied context: \(context)")
     }
 }
-
-

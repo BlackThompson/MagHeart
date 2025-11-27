@@ -2,7 +2,6 @@ import SwiftUI
 
 struct StatusInfoView: View {
     let status: String
-    let backendStatus: String
     let isRunning: Bool
     
     var body: some View {
@@ -21,14 +20,6 @@ struct StatusInfoView: View {
                     title: "App Status",
                     value: status,
                     color: statusColor
-                )
-                
-                // Backend Status Card
-                StatusCard(
-                    icon: backendStatus.contains("OK") ? "checkmark.circle.fill" : "xmark.circle.fill",
-                    title: "Backend",
-                    value: backendStatus,
-                    color: backendStatus.contains("OK") ? .green : .orange
                 )
                 
                 // Monitoring State Card
@@ -97,5 +88,4 @@ private struct StatusCard: View {
         )
     }
 }
-
 

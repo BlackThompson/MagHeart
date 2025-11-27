@@ -154,6 +154,40 @@ class MeetingManager:
         await self.broadcast(json.dumps(event), meeting_id)
         await self.broadcast_state(meeting_id)
 
+    async def end_meeting(self, meeting_id: str, requested_by: str) -> None:
+        """
+        End the meeting (host only) and broadcast completion event before cleanup.
+        """
+        participant = self.repo.get_participant(meeting_id, requested_by)
+        role = participant.get("role") if participant else None
+        if role != "host":
+            now_str = datetime.now().isoformat()
+            warning_event = {
+                "type": "meeting_end_denied",
+                "payload": {
+                    "meetingId": meeting_id,
+                    "requestedBy": requested_by,
+                    "reason": "insufficient_permissions",
+                    "requiredRole": "host",
+                    "timestamp": now_str,
+                },
+            }
+            await self._send_direct(json.dumps(warning_event), meeting_id, requested_by)
+            return
+
+        now_str = datetime.now().isoformat()
+        event = {
+            "type": "meeting_ended",
+            "payload": {
+                "meetingId": meeting_id,
+                "endedBy": requested_by,
+                "timestamp": now_str,
+            },
+        }
+        await self.broadcast(json.dumps(event), meeting_id)
+        self.repo.delete_meeting(meeting_id)
+        self._connections.pop(meeting_id, None)
+
     async def cleanup_stale(
         self,
         meeting_id: str,

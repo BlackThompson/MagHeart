@@ -23,9 +23,9 @@ final class WatchSessionManager: NSObject, WCSessionDelegate, ObservableObject {
         
         // Observe settings changes and sync to Watch
         let settings = AppSettings.shared
-        settingsCancellable = Publishers.CombineLatest3(settings.$backendURLString, settings.$userId, settings.$uploadDirectFallback)
+        settingsCancellable = Publishers.CombineLatest(settings.$backendURLString, settings.$userId)
             .debounce(for: .milliseconds(300), scheduler: DispatchQueue.main)
-            .sink { [weak self] _, _, _ in
+            .sink { [weak self] _, _ in
                 self?.syncSettingsToWatch()
             }
     }
@@ -94,7 +94,6 @@ final class WatchSessionManager: NSObject, WCSessionDelegate, ObservableObject {
             context["backendURL"] = url
         }
         context["userId"] = settings.userId
-        context["uploadDirectFallback"] = settings.uploadDirectFallback
         do {
             try session.updateApplicationContext(context)
             print("[WC iOS] Synced settings to Watch: \(context)")
@@ -103,4 +102,3 @@ final class WatchSessionManager: NSObject, WCSessionDelegate, ObservableObject {
         }
     }
 }
-

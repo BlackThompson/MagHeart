@@ -45,6 +45,8 @@ async def _handle_message(message: Dict[str, Any], meeting_id: str, user_id: str
         updates = payload.get("meetingState")
         if isinstance(updates, dict):
             await meeting_manager.update_meeting_state(meeting_id, updates, user_id)
+    elif msg_type == "end_meeting":
+        await meeting_manager.end_meeting(meeting_id, user_id)
     elif msg_type in {"card_hover", "card_select_start", "card_select_cancel"}:
         # Broadcast interaction events to all other participants
         await meeting_manager.broadcast(json.dumps({"type": msg_type, "payload": payload}), meeting_id)

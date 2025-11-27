@@ -14,6 +14,7 @@ const useCoCreationSocket = ({ meetingId, userId, role, avatarSeed, initialPhase
     meetingPhase: initialPhase,
     meetingState: {},
     isConnected: false,
+    meetingEnded: false,
   });
 
   useEffect(() => {
@@ -41,6 +42,7 @@ const useCoCreationSocket = ({ meetingId, userId, role, avatarSeed, initialPhase
     sendLeaveMeeting: (reason) => client.sendLeaveMeeting(reason),
     sendUpdatePhase: (phase) => client.sendUpdatePhase(phase),
     sendUpdateMeetingState: (updates) => client.sendUpdateMeetingState(updates),
+    sendEndMeeting: (reason) => client.sendEndMeeting(reason),
     sendEvent: (type, payload) => client.sendMessage({ type, payload }),
   };
 };

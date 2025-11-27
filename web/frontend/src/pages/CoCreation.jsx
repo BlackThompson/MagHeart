@@ -203,7 +203,7 @@ export default function CoCreationPage() {
   }, [addStream, updateCoCreationStatus]);
 
   const handleOpenLego = useCallback(() => {
-    window.open('https://www.lego.com/en-us/minifigure-factory', '_blank', 'noopener,noreferrer');
+    window.open('https://www.lego.com/en-gb/pick-and-build/create-a-minifigure', '_blank', 'noopener,noreferrer');
   }, []);
 
   const uploadSnapshot = useCallback(

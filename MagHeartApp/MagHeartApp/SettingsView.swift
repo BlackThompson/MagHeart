@@ -161,6 +161,9 @@ struct SettingsView: View {
             }
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.large)
+            .refreshable {
+                watchManager.checkWatchAppStatus()
+            }
         }
         .onAppear {
             urlInput = appSettings.backendURLString.isEmpty ? Config.backendBaseURL.absoluteString : appSettings.backendURLString

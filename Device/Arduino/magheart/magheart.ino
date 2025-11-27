@@ -25,6 +25,9 @@ unsigned long systoleDuration[NUM_CHANNELS] = {0, 0, 0};
 unsigned long diastoleDuration[NUM_CHANNELS] = {0, 0, 0};
 unsigned long phaseStartTime[NUM_CHANNELS] = {0, 0, 0};
 
+// 记录每个通道最近一次收到数据（串口命令）的时间，用于自动超时关闭
+unsigned long lastDataTime[NUM_CHANNELS] = {0, 0, 0};
+
 bool isBeating[NUM_CHANNELS] = {false, false, false};
 bool isPeak[NUM_CHANNELS] = {false, false, false};
 
@@ -37,6 +40,7 @@ void setHeartRateForChannel(int ch, int bpm)
   if (bpm <= 0)
   {
     isBeating[ch] = false;
+    heartRate[ch] = 0;
     ledcWrite(pwmPins[ch], PWM_OFF);
     return;
   }
@@ -103,6 +107,11 @@ void handleCommand(String line)
     setHeartRateForChannel(1, bpm1);
     setHeartRateForChannel(2, bpm2);
 
+    unsigned long now = millis();
+    lastDataTime[0] = now;
+    lastDataTime[1] = now;
+    lastDataTime[2] = now;
+
     Serial.print("收到云端 BPM=");
     Serial.print(bpm);
     Serial.print(" 映射为: ch0=");
@@ -121,6 +130,9 @@ void handleCommand(String line)
   if (ch >= 0 && ch < NUM_CHANNELS && bpm >= 0 && bpm <= 200)
   {
     setHeartRateForChannel(ch, bpm);
+
+    // 记录该通道最近一次收到数据的时间
+    lastDataTime[ch] = millis();
     Serial.print("通道 ");
     Serial.print(ch);
     Serial.print(" 心率设置为 ");
@@ -180,6 +192,17 @@ void loop()
         phaseStartTime[ch] = now;
         ledcWrite(pwmPins[ch], PWM_PEAK);
       }
+    }
+
+    // 超过 60 秒没有收到该通道的数据，则自动停止该通道
+    if (lastDataTime[ch] > 0 && (now - lastDataTime[ch]) >= 60000UL)
+    {
+      isBeating[ch] = false;
+      heartRate[ch] = 0;
+      ledcWrite(pwmPins[ch], PWM_OFF);
+      Serial.print("通道 ");
+      Serial.print(ch);
+      Serial.println(" 超过 60 秒无数据，自动停止");
     }
   }
 

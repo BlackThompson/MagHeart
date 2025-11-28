@@ -19,3 +19,10 @@ web/data/*.db
 .env
 .env.local
 .env.*.local
+
+.pyc
+__pycache__
+.pytest_cache
+.ruff_cache
+.mypy_cache 
+.ruff_cache

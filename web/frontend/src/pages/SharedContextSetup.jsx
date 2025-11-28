@@ -92,7 +92,7 @@ export default function SharedContextSetupPage() {
     <PageWrapper $background={background}>
       <NavBar
         title="Shared Context Setup"
-        subtitle={subtitle}
+        // subtitle={subtitle}
         tagLabel="Card Stage"
         userLabel={`${name} (${roleLabel})`}
       />

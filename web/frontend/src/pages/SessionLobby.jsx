@@ -60,7 +60,7 @@ export default function SessionLobbyPage() {
     <PageWrapper>
       <NavBar
         title="MagHeart Lobby"
-        subtitle="Gather everyone before starting. Check heart connections and get ready."
+        // subtitle="Gather everyone before starting. Check heart connections and get ready."
         tagLabel={isConnected ? 'Online' : 'Offline'}
         userLabel={`${name} (${role})`}
         meetingId={meetingId}
@@ -113,7 +113,7 @@ export default function SessionLobbyPage() {
           <StatsPanel>
             <PanelHeader>
               <HeartPulse size={20} />
-              <span>Live Vitals</span>
+              <span>Live Heart Rates</span>
             </PanelHeader>
             <VitalsList>
               {participantList.map((p) => {

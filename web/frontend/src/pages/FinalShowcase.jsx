@@ -61,7 +61,7 @@ export default function FinalShowcasePage() {
     <PageWrapper>
       <NavBar
         title="Final Showcase"
-        subtitle="Reveal the final LEGO figure and live assembly camera."
+        // subtitle="Reveal the final LEGO figure and live assembly camera."
         tagLabel={isConnected ? 'Connected' : 'Disconnected'}
         userLabel={`${name} (${role})`}
       />
@@ -89,7 +89,7 @@ export default function FinalShowcasePage() {
       {role === 'host' && (
         <CompleteButton type="button" onClick={handleComplete}>
           <CheckCircle2 size={18} />
-          Finish Session
+          Finish Showcase
         </CompleteButton>
       )}
     </PageWrapper>
@@ -149,7 +149,7 @@ const FinalImage = styled.img`
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center;
+  object-position: 80% center;
 `;
 
 const Placeholder = styled.div`

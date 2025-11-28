@@ -11,7 +11,7 @@ export default function RemoteControlsPanel({
 }) {
   return (
     <Panel>
-      <Hint>Share your screen and open the LEGO Minifigure Factory to start building together.</Hint>
+      <Hint>Share your screen and open the Create-a-Minifigure to start building together.</Hint>
       <ButtonRow>
         <ActionButton type="button" onClick={onStartShare} $variant="primary">
           <Activity size={16} />

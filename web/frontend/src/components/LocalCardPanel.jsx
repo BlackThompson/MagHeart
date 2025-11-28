@@ -369,9 +369,6 @@ export default function LocalCardPanel({ role, meetingState, onUpdateCardStage, 
           )}
           {sharedEntries.map((item) => (
             <NoteItem key={`${item.side}-${item.cardId}`} $side={item.side}>
-              <ContextSideTag $side={item.side}>
-                {item.side === 'local' ? 'Local' : 'Remote'}
-              </ContextSideTag>
               <ContextMain>
                 <ContextTitle $side={item.side}>{item.title}</ContextTitle>
                 {item.prompt && <ContextPrompt>{item.prompt}</ContextPrompt>}
@@ -640,18 +637,6 @@ const NoteItem = styled.div`
   }
 `;
 
-const ContextSideTag = styled.span`
-  flex: 0 0 auto;
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  padding: 4px 8px;
-  border-radius: 999px;
-  color: ${({ $side }) => ($side === 'local' ? '#b45309' : '#047857')};
-  background: ${({ $side }) => ($side === 'local' ? '#fef3c7' : '#d1fae5')};
-`;
-
 const ContextMain = styled.div`
   display: flex;
   flex-direction: column;
@@ -660,11 +645,15 @@ const ContextMain = styled.div`
 `;
 
 const ContextTitle = styled.div`
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   font-weight: 700;
-  color: ${({ $side }) => ($side === 'local' ? '#92400e' : '#065f46')};
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.08em;
+  color: ${({ $side }) => ($side === 'local' ? '#92400e' : '#065f46')};
+  background: ${({ $side }) => ($side === 'local' ? '#fef3c7' : '#d1fae5')};
+  padding: 4px 10px;
+  border-radius: 999px;
+  align-self: flex-start;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

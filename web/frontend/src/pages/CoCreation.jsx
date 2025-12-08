@@ -6,6 +6,7 @@ import { useMeetingSession } from '../context/MeetingSessionContext.jsx';
 import { useWebRTC } from '../hooks/useWebRTC';
 import NavBar from '../components/NavBar.jsx';
 import FloatingNavButton from '../components/FloatingNavButton.jsx';
+import HeartRateDrawer from '../components/HeartRateDrawer.jsx';
 import RemoteControlsPanel from '../components/cocreation/RemoteControlsPanel.jsx';
 import VideoPreview from '../components/cocreation/VideoPreview.jsx';
 import CompletionStatusBoard from '../components/cocreation/CompletionStatusBoard.jsx';
@@ -36,6 +37,8 @@ export default function CoCreationPage() {
     sendUpdateMeetingState,
     meetingState: socketMeetingState,
     isConnected,
+    participants,
+    heartRates,
   } = useMeetingSession();
 
   const isRemote = role === 'remote';
@@ -360,6 +363,8 @@ export default function CoCreationPage() {
     });
   };
 
+  const [showHeartDrawer, setShowHeartDrawer] = useState(false);
+
   return (
     <PageWrapper>
       <NavBar
@@ -367,6 +372,8 @@ export default function CoCreationPage() {
         // subtitle="Let the shared prompts and LEGO bricks be your common language to build together."
         tagLabel={isRemote ? 'Remote View' : 'Local View'}
         userLabel={`${name} (${role})`}
+        showHeartToggle
+        onHeartToggle={() => setShowHeartDrawer((v) => !v)}
       />
 
       <MainContent>
@@ -438,6 +445,12 @@ export default function CoCreationPage() {
         )}
       </MainContent>
       <CelebrationOverlay visible={celebrationVisible} />
+      <HeartRateDrawer
+        open={showHeartDrawer}
+        onClose={() => setShowHeartDrawer(false)}
+        participants={participants}
+        heartRates={heartRates}
+      />
     </PageWrapper>
   );
 }

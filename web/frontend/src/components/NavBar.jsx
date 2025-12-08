@@ -1,8 +1,17 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import { Copy } from 'lucide-react';
+import { Copy, Heart } from 'lucide-react';
 
-export default function NavBar({ title, subtitle, tagLabel, userLabel, meetingId }) {
+
+export default function NavBar({
+  title,
+  subtitle,
+  tagLabel,
+  userLabel,
+  meetingId,
+  showHeartToggle,
+  onHeartToggle,
+}) {
   const [copied, setCopied] = useState(false);
 
   const handleCopyMeeting = () => {
@@ -13,31 +22,48 @@ export default function NavBar({ title, subtitle, tagLabel, userLabel, meetingId
   };
 
   return (
-    <NavBarRoot>
-      <NavLeft>
-        <NavTitle>{title}</NavTitle>
-        {subtitle && <NavSubtitle>{subtitle}</NavSubtitle>}
-      </NavLeft>
-      <NavRight>
-        {tagLabel && <StageTag>{tagLabel}</StageTag>}
-        {userLabel && <UserLabel>{userLabel}</UserLabel>}
-        {meetingId && (
-          <MeetingInfo>
-            <MeetingLabel>Meeting ID</MeetingLabel>
-            <MeetingValue>{meetingId}</MeetingValue>
-            <CopyButton type="button" onClick={handleCopyMeeting} aria-label="Copy meeting ID">
-              <Copy size={14} />
-              <span>{copied ? 'Copied' : 'Copy'}</span>
-            </CopyButton>
-          </MeetingInfo>
-        )}
-      </NavRight>
-    </NavBarRoot>
+    <NavBarWrapper>
+      <NavBarRoot>
+        <NavLeft>
+          <NavTitle>{title}</NavTitle>
+          {subtitle && <NavSubtitle>{subtitle}</NavSubtitle>}
+        </NavLeft>
+        <NavRight>
+          {tagLabel && <StageTag>{tagLabel}</StageTag>}
+          {userLabel && <UserLabel>{userLabel}</UserLabel>}
+          {meetingId && (
+            <MeetingInfo>
+              <MeetingLabel>Meeting ID</MeetingLabel>
+              <MeetingValue>{meetingId}</MeetingValue>
+              <CopyButton type="button" onClick={handleCopyMeeting} aria-label="Copy meeting ID">
+                <Copy size={14} />
+                <span>{copied ? 'Copied' : 'Copy'}</span>
+              </CopyButton>
+            </MeetingInfo>
+          )}
+        </NavRight>
+      </NavBarRoot>
+      {showHeartToggle && (
+        <HeartToggle
+          type="button"
+          onClick={onHeartToggle}
+          aria-label="Toggle heart rates"
+          title="Show heart rates"
+        >
+          <Heart size={16} />
+        </HeartToggle>
+      )}
+    </NavBarWrapper>
   );
 }
 
-const NavBarRoot = styled.header`
+const NavBarWrapper = styled.header`
+  position: relative;
+  z-index: 10;
   flex-shrink: 0;
+`;
+
+const NavBarRoot = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -45,7 +71,8 @@ const NavBarRoot = styled.header`
   background-color: var(--surface-color);
   border-bottom: 1px solid var(--border-color);
   box-shadow: var(--shadow-sm);
-  z-index: 10;
+  position: relative;
+  z-index: 2; /* Main bar on top */
 `;
 
 const NavLeft = styled.div`
@@ -79,6 +106,7 @@ const NavRight = styled.div`
   flex-direction: column;
   align-items: flex-end;
   gap: 6px;
+  position: relative;
 `;
 
 const StageTag = styled.div`
@@ -131,5 +159,53 @@ const CopyButton = styled.button`
 
   &:hover {
     background: rgba(99, 102, 241, 0.08);
+  }
+`;
+
+const HeartToggle = styled.button`
+  position: absolute;
+  right: 24px; /* Align with layout padding */
+  top: 100%; /* Attach to bottom of wrapper */
+  margin-top: -12px; /* Pull up to hide top part behind bar */
+  
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  
+  padding: 16px 12px 8px; /* Extra top padding to handle the pull-up */
+  background: var(--surface-color);
+  border: 1px solid var(--border-color);
+  /* Top border is visible if we don't hide it behind the bar. 
+     Since it's z-index 1 and bar is z-index 2, the bar will cover the top part. */
+  border-radius: 0 0 12px 12px;
+  
+  color: var(--text-color-muted);
+  cursor: pointer;
+  z-index: 1; /* BEHIND the bar (z-index 2) */
+  
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.08);
+
+  svg {
+    transition: transform 0.3s ease;
+  }
+
+  &:hover {
+    margin-top: -4px; /* Slide down to show more */
+    color: #ef4444; 
+    box-shadow: 0 8px 16px -4px rgba(239, 68, 68, 0.15);
+    /* Keep z-index 1 so it stays behind! Or do we want it to pop over? 
+       Usually tabs stay behind. Let's keep it behind for the "tucked" feel. */
+    
+    svg {
+      transform: scale(1.1);
+      fill: rgba(239, 68, 68, 0.1);
+    }
+  }
+
+  &:active {
+    margin-top: -8px; 
+    transform: scale(0.98);
   }
 `;

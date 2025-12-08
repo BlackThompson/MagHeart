@@ -1,11 +1,12 @@
-import React, { useEffect, useCallback, useRef } from 'react';
+import React, { useEffect, useCallback, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 
 import CameraView from '../components/cocreation/CameraView';
 import { useMeetingSession } from '../context/MeetingSessionContext.jsx';
-import { Wifi, WifiOff, CheckCircle2 } from 'lucide-react';
+import { CheckCircle2 } from 'lucide-react';
 import NavBar from '../components/NavBar.jsx';
+import HeartRateDrawer from '../components/HeartRateDrawer.jsx';
 
 export default function FinalShowcasePage() {
   const location = useLocation();
@@ -18,6 +19,8 @@ export default function FinalShowcasePage() {
     isConnected,
     meetingState,
     sendEndMeeting,
+    participants,
+    heartRates,
   } = useMeetingSession();
 
   useEffect(() => {
@@ -57,6 +60,8 @@ export default function FinalShowcasePage() {
     }
   }, [role, sendEndMeeting]);
 
+  const [showHeartDrawer, setShowHeartDrawer] = useState(false);
+
   return (
     <PageWrapper>
       <NavBar
@@ -64,6 +69,8 @@ export default function FinalShowcasePage() {
         // subtitle="Reveal the final LEGO figure and live assembly camera."
         tagLabel={isConnected ? 'Connected' : 'Disconnected'}
         userLabel={`${name} (${role})`}
+        showHeartToggle
+        onHeartToggle={() => setShowHeartDrawer((v) => !v)}
       />
 
       <MainContent>
@@ -92,6 +99,12 @@ export default function FinalShowcasePage() {
           Finish Showcase
         </CompleteButton>
       )}
+      <HeartRateDrawer
+        open={showHeartDrawer}
+        onClose={() => setShowHeartDrawer(false)}
+        participants={participants}
+        heartRates={heartRates}
+      />
     </PageWrapper>
   );
 }

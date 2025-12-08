@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { useMeetingSession } from '../context/MeetingSessionContext.jsx';
 import LocalCardPanel from '../components/LocalCardPanel.jsx';
 import NavBar from '../components/NavBar.jsx';
 import FloatingNavButton from '../components/FloatingNavButton.jsx';
+import HeartRateDrawer from '../components/HeartRateDrawer.jsx';
 import { createDefaultCardStage } from '../constants/cardStage.js';
 
 export default function SharedContextSetupPage() {
@@ -12,7 +13,15 @@ export default function SharedContextSetupPage() {
   const navigate = useNavigate();
   const { name, role, meetingId: stateMeetingId } = location.state || {};
   const roleLabel = role === 'host' ? 'Host' : role === 'local' ? 'Local' : 'Remote';
-  const { sendUpdatePhase, sendUpdateMeetingState, meetingState, sendEvent, messages } = useMeetingSession();
+  const {
+    sendUpdatePhase,
+    sendUpdateMeetingState,
+    meetingState,
+    sendEvent,
+    messages,
+    participants,
+    heartRates,
+  } = useMeetingSession();
 
   const queryMeetingId = new URLSearchParams(location.search).get('meetingId');
   const meetingId = stateMeetingId || queryMeetingId || 'default-meeting';
@@ -25,6 +34,7 @@ export default function SharedContextSetupPage() {
   }
 
   const background = 'var(--background-color)';
+  const [showHeartDrawer, setShowHeartDrawer] = useState(false);
 
   // Default structure if meetingState is empty
   const cardStage = meetingState?.cardStage || createDefaultCardStage();
@@ -95,6 +105,8 @@ export default function SharedContextSetupPage() {
         // subtitle={subtitle}
         tagLabel="Card Stage"
         userLabel={`${name} (${roleLabel})`}
+        showHeartToggle
+        onHeartToggle={() => setShowHeartDrawer((v) => !v)}
       />
 
       <MainContent>
@@ -118,6 +130,12 @@ export default function SharedContextSetupPage() {
         )}
 
       </MainContent>
+      <HeartRateDrawer
+        open={showHeartDrawer}
+        onClose={() => setShowHeartDrawer(false)}
+        participants={participants}
+        heartRates={heartRates}
+      />
     </PageWrapper>
   );
 }

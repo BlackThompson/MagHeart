@@ -27,7 +27,7 @@ __pycache__
 .mypy_cache 
 .ruff_cache
 
-docs
+/docs
 
 /data/
 

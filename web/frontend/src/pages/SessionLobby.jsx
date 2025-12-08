@@ -61,7 +61,7 @@ export default function SessionLobbyPage() {
       <NavBar
         title="MagHeart Lobby"
         // subtitle="Gather everyone before starting. Check heart connections and get ready."
-        tagLabel={isConnected ? 'Online' : 'Offline'}
+        tagLabel={!isConnected ? 'Offline' : null}
         userLabel={`${name} (${role})`}
         meetingId={meetingId}
       />

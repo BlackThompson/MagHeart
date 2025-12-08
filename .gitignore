@@ -27,10 +27,10 @@ __pycache__
 .mypy_cache 
 .ruff_cache
 
-./docs
+docs
 
-./data/
+/data/
 
-.cursor
+/.cursor
 
-./web/data/
+/web/data/

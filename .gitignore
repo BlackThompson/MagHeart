@@ -26,3 +26,11 @@ __pycache__
 .ruff_cache
 .mypy_cache 
 .ruff_cache
+
+./docs
+
+./data/
+
+.cursor
+
+./web/data/

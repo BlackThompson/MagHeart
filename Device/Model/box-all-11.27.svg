@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="_图层_1" data-name="图层_1" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 572.6 388.35">
+  <!-- Generator: Adobe Illustrator 29.8.1, SVG Export Plug-In . SVG Version: 2.1.1 Build 2)  -->
+  <defs>
+    <style>
+      .st0 {
+        fill: #fff;
+        stroke-miterlimit: 10;
+      }
+
+      .st0, .st1, .st2 {
+        stroke: red;
+      }
+
+      .st1 {
+        stroke-width: .71px;
+      }
+
+      .st1, .st2 {
+        fill: none;
+        stroke-miterlimit: 11.34;
+      }
+
+      .st2 {
+        stroke-width: .02px;
+      }
+    </style>
+  </defs>
+  <path class="st1" d="M172.91,272.13h-51.73v8.5h-38.27v-8.5H31.18v27.64H14.17v38.27h17.01v36.14h51.73v-17.01h38.27v17.01h51.73v-36.14h17.01v-38.27h-17.01v-27.64Z"/>
+  <path class="st1" d="M357.17,272.13h-51.73v8.5h-38.27v-8.5h-51.73v27.64h-17.01v38.27h17.01v36.14h51.73v-17.01h38.27v17.01h51.73v-36.14h17.01v-38.27h-17.01v-27.64Z"/>
+  <path class="st1" d="M189.92,153.07h-68.74v8.5h-38.27v-8.5H14.17v27.64h17.01v38.27H14.17v36.14h68.74v-34.02h38.27v34.02h68.74v-36.14h-17.01v-38.27h17.01v-27.64Z"/>
+  <path class="st1" d="M374.17,153.07h-68.74v8.5h-38.27v-8.5h-68.74v27.64h17.01v38.27h-17.01v36.14h68.74v-17.01h38.27v17.01h68.74v-36.14h-17.01v-38.27h17.01v-27.64Z"/>
+  <path class="st1" d="M489.69,198.43h-38.27v17.01h-51.73v51.73h-17.01v38.27h17.01v51.73h51.73v17.01h38.27v-17.01h51.73v-51.73h17.01v-38.27h-17.01v-51.73h-51.73v-17.01Z"/>
+  <path class="st1" d="M489.69,14.17h-38.27v17.01h-51.73v51.73h-17.01v38.27h17.01v51.73h51.73v17.01h38.27v-17.01h51.73v-51.73h17.01v-38.27h-17.01V31.18h-51.73V14.17Z"/>
+  <circle class="st0" cx="470.55" cy="102.05" r="53.86"/>
+  <circle class="st2" cx="470.55" cy="286.3" r="5.67"/>
+  <circle cx="470.55" cy="286.3" r="14.17"/>
+</svg>

@@ -17,19 +17,18 @@
 
 #### Other @Kacy
 
-- [ ] Apply for GDPR
+- [x] Apply for GDPR
 
 ### Week 2: Nov 10 - Nov 16
 #### Device @Black @ Dylan
 
-- [ ] Add LED Strip
 - [x] Connect the device and the software
 
 ### Week 3: Nov 17 - Nov 23
-- [ ] User Study
+- [x] User Study
 
 ### Week 4: Nov 24 - Nov 28
-- [ ] TBC
+- [x] TBC
 
 ---
 

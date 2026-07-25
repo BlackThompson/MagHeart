@@ -46,13 +46,13 @@ Send heart rate via command line:
 
 ```bash
 # Send 80 BPM
-curl -X POST http://127.0.0.1:8000/api/heart_rate \
+curl -X POST http://127.0.0.1:7000/api/heart_rate \
   -H 'Content-Type: application/json' \
   -H 'X-User-Id: demo' \
   -d '{"bpm":80, "ts": '$(date +%s000)', "device":"curl_test"}'
 
 # Stop heartbeat
-curl -X POST http://127.0.0.1:8000/api/heart_rate \
+curl -X POST http://127.0.0.1:7000/api/heart_rate \
   -H 'Content-Type: application/json' \
   -H 'X-User-Id: demo' \
   -d '{"bpm":0, "ts": '$(date +%s000)', "device":"curl_test"}'
@@ -61,7 +61,7 @@ curl -X POST http://127.0.0.1:8000/api/heart_rate \
 ### 3. Check Arduino Status
 
 ```bash
-curl http://127.0.0.1:8000/api/arduino/status
+curl http://127.0.0.1:7000/api/arduino/status
 ```
 
 Response:
@@ -84,7 +84,7 @@ Example Swift code to send heart rate from Apple Watch:
 import HealthKit
 
 func sendHeartRate(bpm: Int) {
-    let url = URL(string: "http://your-server:8000/api/heart_rate")!
+    let url = URL(string: "http://your-server:7000/api/heart_rate")!
     var request = URLRequest(url: url)
     request.httpMethod = "POST"
     request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -106,7 +106,7 @@ func sendHeartRate(bpm: Int) {
 
 ```javascript
 async function sendHeartRate(bpm) {
-  const response = await fetch('http://127.0.0.1:8000/api/heart_rate', {
+  const response = await fetch('http://127.0.0.1:7000/api/heart_rate', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

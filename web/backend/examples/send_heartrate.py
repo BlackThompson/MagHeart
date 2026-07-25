@@ -7,7 +7,7 @@ import time
 from datetime import datetime
 
 # Backend URL
-BASE_URL = "http://127.0.0.1:8000"
+BASE_URL = "http://127.0.0.1:7000"
 
 def send_heart_rate(bpm: int, user_id: str = "demo", device: str = "test_script"):
     """Send a single heart rate measurement"""

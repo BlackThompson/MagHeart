@@ -9,6 +9,7 @@ private var isPreviewRunning: Bool {
 }
 
 struct HRPhoneView: View {
+    @StateObject private var appSettings = AppSettings.shared
     @StateObject private var watchManager = WatchSessionManager.shared
     @State private var lastBpm: Int? = nil
     @State private var status: String = ""
@@ -16,25 +17,20 @@ struct HRPhoneView: View {
     var body: some View {
         NavigationView {
             ZStack {
-                // Background gradient
-                LinearGradient(
-                    gradient: Gradient(colors: [Color(.systemBackground), Color(.systemGray6)]),
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .ignoresSafeArea()
+                Color(.systemBackground)
+                    .ignoresSafeArea()
                 
                 VStack(spacing: 20) {
                     Spacer()
                     
                     // Heart rate display card
-                    HeartCardView(bpm: lastBpm)
+                    HeartCardView(bpm: displayedBpm)
                     .padding(.horizontal, 24)
                     
                     Spacer()
                     
                     if shouldShowUploadedCard {
-                        StatusMessageCard(message: status)
+                        StatusMessageCard(message: displayedStatus)
                             .padding(.horizontal, 24)
                     }
                     
@@ -59,10 +55,24 @@ struct HRPhoneView: View {
             status = "Uploaded: \(lastBpm ?? 0) BPM"
         }
     }
+
+    private var displayedBpm: Int? {
+        if appSettings.isUITestModeEnabled {
+            return 75
+        }
+        return lastBpm
+    }
+
+    private var displayedStatus: String {
+        if appSettings.isUITestModeEnabled {
+            return "Uploaded: 75 BPM"
+        }
+        return status
+    }
     
     private var shouldShowUploadedCard: Bool {
-        guard !status.isEmpty else { return false }
-        return status.lowercased().hasPrefix("uploaded")
+        guard !displayedStatus.isEmpty else { return false }
+        return displayedStatus.lowercased().hasPrefix("uploaded")
     }
 }
 

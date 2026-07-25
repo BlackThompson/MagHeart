@@ -7,11 +7,13 @@ final class AppSettings: ObservableObject {
         // Load persisted values or defaults
         backendURLString = UserDefaults.standard.string(forKey: Keys.backendURL) ?? Config.backendBaseURL.absoluteString
         userId = UserDefaults.standard.string(forKey: Keys.userId) ?? "demo"
+        isUITestModeEnabled = UserDefaults.standard.bool(forKey: Keys.uiTestMode)
     }
     
     private enum Keys {
         static let backendURL = "AppSettings.backendURL"
         static let userId = "AppSettings.userId"
+        static let uiTestMode = "AppSettings.uiTestMode"
     }
     
     @Published var backendURLString: String {
@@ -23,6 +25,12 @@ final class AppSettings: ObservableObject {
     @Published var userId: String {
         didSet {
             UserDefaults.standard.set(userId, forKey: Keys.userId)
+        }
+    }
+
+    @Published var isUITestModeEnabled: Bool {
+        didSet {
+            UserDefaults.standard.set(isUITestModeEnabled, forKey: Keys.uiTestMode)
         }
     }
     

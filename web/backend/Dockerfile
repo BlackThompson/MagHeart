@@ -20,6 +20,6 @@ COPY web/backend /app/web/backend
 ENV MAGHEART_DATA_DIR=/data
 RUN mkdir -p ${MAGHEART_DATA_DIR}
 
-EXPOSE 8176
+EXPOSE 7000
 
-CMD ["uvicorn", "web.backend.app:app", "--host", "0.0.0.0", "--port", "8176"]
+CMD ["uvicorn", "web.backend.app:app", "--host", "0.0.0.0", "--port", "7000"]

@@ -21,6 +21,19 @@ struct SettingsView: View {
     var body: some View {
         NavigationView {
             Form {
+                Section {
+                    Toggle(isOn: $appSettings.isUITestModeEnabled) {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("UI Test Mode")
+                            Text("Always show 75 BPM and uploaded card on the home screen")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                } header: {
+                    Label("UI Testing", systemImage: "switch.2")
+                }
+
                 // Backend Configuration Section
                 Section {
                     HStack(spacing: 12) {

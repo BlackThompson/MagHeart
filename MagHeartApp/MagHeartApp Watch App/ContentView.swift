@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct ContentView: View {
+    @StateObject private var watchSettings = WatchSettings.shared
     @StateObject private var workout = WorkoutManager()
     @State private var running = false
     @State private var status: String = "Initializing..."
@@ -16,7 +17,7 @@ struct ContentView: View {
         TabView {
             // Page 1: Main - Heart Rate & Control
             MainHeartRateView(
-                currentBPM: workout.currentBPM,
+                currentBPM: displayedBPM,
                 running: running,
                 onToggle: {
                     if running {
@@ -33,8 +34,9 @@ struct ContentView: View {
             
             // Page 2: Status & Info
             StatusInfoView(
-                status: status,
-                isRunning: running
+                status: displayedStatus,
+                isRunning: running,
+                isUITestModeEnabled: $watchSettings.isUITestModeEnabled
             )
             .containerBackground(.black.gradient, for: .tabView)
         }
@@ -50,6 +52,20 @@ struct ContentView: View {
                 }
             }
         }
+    }
+
+    private var displayedBPM: Int? {
+        if watchSettings.isUITestModeEnabled {
+            return 75
+        }
+        return workout.currentBPM
+    }
+
+    private var displayedStatus: String {
+        if watchSettings.isUITestModeEnabled {
+            return "Uploaded: 75 BPM"
+        }
+        return status
     }
 }
 

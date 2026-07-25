@@ -98,7 +98,7 @@ INFO:     Application startup complete.
 
 Open your browser and visit:
 ```
-http://127.0.0.1:8000/api/arduino/status
+http://127.0.0.1:7000/api/arduino/status
 ```
 
 Response:
@@ -116,7 +116,7 @@ Response:
 When you POST heart rate data, it will automatically be sent to Arduino:
 
 ```bash
-curl -X POST http://127.0.0.1:8000/api/heart_rate \
+curl -X POST http://127.0.0.1:7000/api/heart_rate \
   -H 'Content-Type: application/json' \
   -H 'X-User-Id: demo' \
   -d '{"bpm":75, "ts": 1730704523123, "device":"watch_live"}'

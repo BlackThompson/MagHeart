@@ -13,10 +13,10 @@ export default defineConfig({
   ],
   server: {
     proxy: {
-      '/events': { target: 'http://localhost:8176', changeOrigin: true },
-      '/api': { target: 'http://localhost:8176', changeOrigin: true },
+      '/events': { target: 'http://localhost:7000', changeOrigin: true },
+      '/api': { target: 'http://localhost:7000', changeOrigin: true },
       '/cocreation': {
-        target: 'http://localhost:8176',
+        target: 'http://localhost:7000',
         changeOrigin: true,
         ws: true,
       },

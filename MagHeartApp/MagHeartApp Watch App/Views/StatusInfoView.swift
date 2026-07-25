@@ -3,10 +3,24 @@ import SwiftUI
 struct StatusInfoView: View {
     let status: String
     let isRunning: Bool
+    @Binding var isUITestModeEnabled: Bool
     
     var body: some View {
         ScrollView {
             VStack(spacing: 14) {
+                Toggle(isOn: $isUITestModeEnabled) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("UI Test")
+                            .font(.headline)
+                            .foregroundColor(.white)
+                        Text("Show 75 BPM")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                    }
+                }
+                .toggleStyle(.switch)
+                .tint(.green)
+
                 // Header
                 Text("Status")
                     .font(.headline)
@@ -88,4 +102,3 @@ private struct StatusCard: View {
         )
     }
 }
-

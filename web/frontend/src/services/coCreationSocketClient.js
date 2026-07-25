@@ -73,10 +73,11 @@ class CoCreationSocketClient {
     const { meetingId, userId } = this.config || {};
     if (!meetingId || !userId || this.stopped) return;
 
-    const defaultDevOrigin =
-      typeof window !== 'undefined' && window.location.port === '5173'
-        ? 'http://127.0.0.1:8176'
-        : window.location.origin;
+    const isLocalFrontend =
+      typeof window !== 'undefined' &&
+      (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') &&
+      window.location.port !== '7000';
+    const defaultDevOrigin = isLocalFrontend ? 'http://127.0.0.1:7000' : window.location.origin;
     const backendOrigin = import.meta.env.VITE_BACKEND_ORIGIN || defaultDevOrigin;
     const wsUrlObj = new URL(`/cocreation/ws/${meetingId}/${userId}`, backendOrigin);
     wsUrlObj.protocol = wsUrlObj.protocol === 'https:' ? 'wss:' : 'ws:';

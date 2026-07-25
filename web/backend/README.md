@@ -37,16 +37,16 @@ See [ARDUINO_SETUP.md](./ARDUINO_SETUP.md) for detailed Arduino integration guid
 Start dev server:
 
 ```
-uvicorn Software.backend.app:app --reload
+uvicorn web.backend.app:app --reload --port 7000
 ```
 
 Open SSE in browser:
-- `http://127.0.0.1:8000/events?userId=demo`
+- `http://127.0.0.1:7000/events?userId=demo`
 
 Send a test heart rate:
 
 ```
-curl -X POST http://127.0.0.1:8000/api/heart_rate \
+curl -X POST http://127.0.0.1:7000/api/heart_rate \
   -H 'Content-Type: application/json' \
   -H 'X-User-Id: demo' \
   -d '{"bpm":82, "ts": 1730704523123, "device":"watch_demo"}'

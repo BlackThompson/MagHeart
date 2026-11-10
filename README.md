@@ -1,112 +1,68 @@
 # MagHeart
 
-## TODO List
+MagHeart is a research prototype for breaking the ice at the start of a hybrid meeting. People in the room and a remote participant use prompt cards to design a LEGO minifigure together. The group places the figure on a magnetic levitation device that moves at the pace of the remote participant’s heart rate.
 
-### Week 1: Nov 3 - Nov 9
+[Read the CHI EA ’26 paper](https://doi.org/10.1145/3772363.3798371) · [BibTeX](#citation)
 
-#### Device @Black
+## System components
 
-- [x] Magnetic levitation
-- [x] Device casing design
-- [x] Simulated heartbeat Arduino code
+- The [web interface](web/frontend/) guides participants through choosing an avatar, answering cards, building their figures, and showing each other the results.
+- The [Apple Watch and iPhone apps](MagHeartApp/) collect the remote participant’s heart rate on the watch and upload readings through the phone.
+- The [FastAPI backend](web/backend/) manages meeting sessions and streams heart rate updates to connected clients.
+- The [physical device](Device/) uses a microcontroller to translate heart rate readings into motion. See the [Arduino setup guide](docs/QUICKSTART_ARDUINO.md) to connect it.
 
-#### Software @Dylan
+## Run the web prototype locally
 
-- [x] Read Apple Watch heart rate stream data (a simple demo to demonstrate)
-- [x] Building Lego Figures App (A separate app / a plugin of Zoom?)
+Start with Python 3.10 or later, Node.js 22.12 or later with npm, and a running Redis server. The commands below assume Redis is listening on port 6379 on your machine. You can try the web flow and send a sample heart rate without a watch or levitation device.
 
-#### Other @Kacy
+From the repository root, start the backend in one terminal:
 
-- [x] Apply for GDPR
-
-### Week 2: Nov 10 - Nov 16
-#### Device @Black @ Dylan
-
-- [x] Connect the device and the software
-
-### Week 3: Nov 17 - Nov 23
-- [x] User Study
-
-### Week 4: Nov 24 - Nov 28
-- [x] TBC
-
----
-
-### Notes
-- Update this list daily with progress
-- Check off completed items using `[x]`
-- Add specific tasks as needed under each day
-
-
-
-> [!WARNING]
-> Example
-
-> [!NOTE]
-> Example
-
-> [!TIP]
-> Example
-
-> [!IMPORTANT]
-> Example
-
-> [!CAUTION]
-> Example
-
----
-
-## 🔌 Arduino Device Integration
-
-**Connect heart rate data to physical device!**
-
-The backend can send heart rate data directly to your ESP32/Arduino device via serial port, controlling a magnetic levitation system to visualize heartbeats in real-time.
-
-### Quick Setup
-
-1. **Upload Arduino code**: `Device/Arduino/magheart.ino`
-2. **Configure backend**: Set `ARDUINO_ENABLED=true` and `ARDUINO_PORT` in `.env`
-3. **Test connection**: `python web/backend/test_arduino.py`
-4. **Start backend**: Heart rates will automatically control the device!
-
-📖 **Full guide**: [QUICKSTART_ARDUINO.md](QUICKSTART_ARDUINO.md)
-
----
-
-### Software Quickstart (Backend + Frontend)
-
-- Backend (FastAPI) in `Software/backend/` with SSE and CSV persistence.
-- Frontend is a React app in `Software/frontend` (Vite + react-jss).
-
-Run backend:
-
-```
-pip install -r Software/backend/requirements.txt
-uvicorn web.backend.app:app --reload
+```sh
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r web/backend/requirements.txt
+export REDIS_URL=redis://127.0.0.1:6379/0
+python -m uvicorn web.backend.app:app --reload --port 7000
 ```
 
-Open SSE stream in browser:
-- `http://127.0.0.1:8000/events?userId=demo`
+In a second terminal, start the frontend from the repository root:
 
-Send a test heart rate:
-
-```
-curl -X POST http://127.0.0.1:8000/api/heart_rate \
-  -H 'Content-Type: application/json' \
-  -H 'X-User-Id: demo' \
-  -d '{"bpm":85, "ts": 1730704523123, "source":"watch_live"}'
-```
-
-CSV files are saved under `data/{userId}.csv`.
-
-See `Software/backend/README.md` for details.
-
-#### React (Vite) Frontend
-
-```
-cd Software/frontend
-npm install
+```sh
+cd web/frontend
+npm ci
 npm run dev
 ```
 
-Dev server runs on `http://127.0.0.1:5173`. The Vite proxy (see `Software/frontend/vite.config.js`) forwards `/events` and `/api` to the FastAPI backend at `http://127.0.0.1:8000`.
+Open the local URL printed by Vite (usually `http://localhost:5173`) to choose an identity and enter the meeting lobby. Vite forwards API and meeting traffic to the backend on port 7000.
+
+To try the heart rate stream, open `http://localhost:7000/events?userId=demo` and send a sample from a terminal:
+
+```sh
+curl http://localhost:7000/api/heart_rate \
+  -H 'Content-Type: application/json' \
+  -H 'X-User-Id: demo' \
+  -d '{"bpm":85,"ts":1730704523123,"device":"demo"}'
+```
+
+The stream displays a heart rate event for user `demo` with a reading of 85 BPM.
+
+## Citation
+
+```bibtex
+@inproceedings{10.1145/3772363.3798371,
+  author = {Sun, Black and Xu, Haiyang and Kacy Fu, Ge and Da, Liyue and Hoggan, Eve},
+  title = {MagHeart: Exploring Playful Avatar Co-Creation and Shared Heartbeats for Icebreaking in Hybrid Meetings},
+  year = {2026},
+  isbn = {9798400722813},
+  publisher = {Association for Computing Machinery},
+  address = {New York, NY, USA},
+  url = {https://doi.org/10.1145/3772363.3798371},
+  doi = {10.1145/3772363.3798371},
+  booktitle = {Proceedings of the Extended Abstracts of the 2026 CHI Conference on Human Factors in Computing Systems},
+  articleno = {443},
+  numpages = {5},
+  keywords = {Hybrid Meetings, Icebreaking, Avatar Co-Creation, Physiological Signal Sharing, Tangible Interaction},
+  location = {Barcelona, Spain},
+  series = {CHI EA '26}
+}
+```
